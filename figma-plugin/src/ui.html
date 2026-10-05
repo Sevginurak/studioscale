@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  :root { color-scheme: light dark; }
+  body { margin: 0; padding: 16px; font: 12px/1.45 Inter, system-ui, sans-serif; color: var(--figma-color-text, #222); background: var(--figma-color-bg, #fff); }
+  h1 { font-size: 14px; margin: 0 0 4px; }
+  p { margin: 0 0 12px; color: var(--figma-color-text-secondary, #666); }
+  label { display: flex; gap: 8px; align-items: center; margin: 6px 0; }
+  button { margin-top: 12px; width: 100%; height: 32px; border: 0; border-radius: 6px; background: #4338CA; color: #fff; font-weight: 600; cursor: pointer; }
+  button:disabled { opacity: .5; cursor: default; }
+  #log { margin-top: 12px; height: 230px; overflow: auto; padding: 8px; border-radius: 6px; background: var(--figma-color-bg-secondary, #f4f4f4); white-space: pre-wrap; font-family: ui-monospace, Menlo, monospace; font-size: 11px; }
+</style>
+</head>
+<body>
+  <h1>EdSpace presentation builder</h1>
+  <p>Builds Behance, Dribbble and Motion pages around your screens. Your original frames are only read: the plugin works from duplicates on "00 Screen Library".</p>
+  <label><input type="checkbox" id="behance" checked> 01 Behance (16 sections)</label>
+  <label><input type="checkbox" id="dribbble" checked> 02 Dribbble (8 shots)</label>
+  <label><input type="checkbox" id="motion" checked> 03 Motion (Smart Animate keyframes)</label>
+  <label><input type="checkbox" id="lite" checked> Lighter file: decorative tilted grids use image copies of the screens (untick for live instances everywhere: about 400 screen instances, very heavy)</label>
+  <label><input type="checkbox" id="motionImages" checked> Lighter Motion page: keyframes use image copies of the screens (edit on 01 Behance)</label>
+  <button id="go">Build pages</button>
+  <div id="log"></div>
+<script>
+  const $ = (id) => document.getElementById(id);
+  $('go').onclick = () => {
+    const only = ['behance', 'dribbble', 'motion'].filter(k => $(k).checked);
+    $('go').disabled = true; $('log').textContent = '';
+    parent.postMessage({ pluginMessage: { type: 'build', opts: { only, lite: $('lite').checked, motionImages: $('motionImages').checked } } }, '*');
+  };
+  onmessage = (e) => {
+    const m = e.data.pluginMessage; if (!m) return;
+    if (m.type === 'log') { $('log').textContent += m.text + '\n'; $('log').scrollTop = 1e9; }
+    if (m.type === 'done' || m.type === 'failed') $('go').disabled = false;
+  };
+</script>
+</body>
+</html>

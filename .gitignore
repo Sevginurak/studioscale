@@ -1,0 +1,5 @@
+node_modules/
+.build/
+# preview fonts are generated locally from the .fig and are not redistributed (Degular is a licensed typeface)
+fonts/
+*.otf

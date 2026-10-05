@@ -1,0 +1,236 @@
+[
+ {
+  "id": "1:4352",
+  "name": "Assistants - All - Empty_state",
+  "slug": "assistants-all-empty-state",
+  "w": 1440,
+  "h": 960,
+  "x": 1050,
+  "y": 2249
+ },
+ {
+  "id": "1:4389",
+  "name": "Assistants - Private - Empty_state",
+  "slug": "assistants-private-empty-state",
+  "w": 1440,
+  "h": 960,
+  "x": 6330,
+  "y": 2249
+ },
+ {
+  "id": "1:4428",
+  "name": "Assistants - Published - Empty_state",
+  "slug": "assistants-published-empty-state",
+  "w": 1440,
+  "h": 960,
+  "x": 8090,
+  "y": 2249
+ },
+ {
+  "id": "1:4467",
+  "name": "Assistants - Draft - Empty_state",
+  "slug": "assistants-draft-empty-state",
+  "w": 1440,
+  "h": 960,
+  "x": 9850,
+  "y": 2249
+ },
+ {
+  "id": "1:4506",
+  "name": "Assistants - Desktop",
+  "slug": "assistants-desktop",
+  "w": 1440,
+  "h": 960,
+  "x": 1050,
+  "y": 0
+ },
+ {
+  "id": "1:4549",
+  "name": "Assistants - Desktop_large",
+  "slug": "assistants-desktop-large",
+  "w": 1920,
+  "h": 1080,
+  "x": 2810,
+  "y": 0
+ },
+ {
+  "id": "1:4592",
+  "name": "Assistants - Loading_state",
+  "slug": "assistants-loading-state",
+  "w": 1440,
+  "h": 960,
+  "x": 6914,
+  "y": 0
+ },
+ {
+  "id": "1:4812",
+  "name": "Assistants - Search",
+  "slug": "assistants-search",
+  "w": 1440,
+  "h": 960,
+  "x": 10434,
+  "y": 0
+ },
+ {
+  "id": "1:4849",
+  "name": "Assistants - Search - No_found",
+  "slug": "assistants-search-no-found",
+  "w": 1440,
+  "h": 960,
+  "x": 2810,
+  "y": 2249
+ },
+ {
+  "id": "1:4886",
+  "name": "Assistants - Active",
+  "slug": "assistants-active",
+  "w": 1440,
+  "h": 960,
+  "x": 8674,
+  "y": 0
+ },
+ {
+  "id": "1:4927",
+  "name": "Assistants - Tablet",
+  "slug": "assistants-tablet",
+  "w": 834,
+  "h": 1194,
+  "x": 5050,
+  "y": 0
+ },
+ {
+  "id": "1:4942",
+  "name": "Assistants - Mobile",
+  "slug": "assistants-mobile",
+  "w": 390,
+  "h": 844,
+  "x": 6204,
+  "y": 0
+ },
+ {
+  "id": "1:4987",
+  "name": "Assistants - Search - Numbers - No_found",
+  "slug": "assistants-search-numbers-no-found",
+  "w": 1440,
+  "h": 960,
+  "x": 4570,
+  "y": 2249
+ },
+ {
+  "id": "1:25002",
+  "name": "Chat - Enabled",
+  "slug": "chat-enabled",
+  "w": 1440,
+  "h": 960,
+  "x": 6914,
+  "y": 4264
+ },
+ {
+  "id": "1:25039",
+  "name": "Chat - Focus - Desktop",
+  "slug": "chat-focus-desktop",
+  "w": 1440,
+  "h": 960,
+  "x": 1050,
+  "y": 4264
+ },
+ {
+  "id": "1:25076",
+  "name": "Chat - Focus - Desktop_large",
+  "slug": "chat-focus-desktop-large",
+  "w": 1920,
+  "h": 1080,
+  "x": 2810,
+  "y": 4264
+ },
+ {
+  "id": "1:25115",
+  "name": "Chat - Focus - Tablet",
+  "slug": "chat-focus-tablet",
+  "w": 834,
+  "h": 1194,
+  "x": 5050,
+  "y": 4264
+ },
+ {
+  "id": "1:25127",
+  "name": "Chat - More - Tablet",
+  "slug": "chat-more-tablet",
+  "w": 834,
+  "h": 1194,
+  "x": 6810,
+  "y": 8195
+ },
+ {
+  "id": "1:25165",
+  "name": "Chat - Menu - Tablet",
+  "slug": "chat-menu-tablet",
+  "w": 834,
+  "h": 1194,
+  "x": 8674,
+  "y": 4264
+ },
+ {
+  "id": "1:25205",
+  "name": "Chat - Typing",
+  "slug": "chat-typing",
+  "w": 1440,
+  "h": 960,
+  "x": 10538,
+  "y": 4264
+ },
+ {
+  "id": "1:25242",
+  "name": "Chat - Error",
+  "slug": "chat-error",
+  "w": 1440,
+  "h": 960,
+  "x": 12298,
+  "y": 4264
+ },
+ {
+  "id": "1:25280",
+  "name": "Chat - Chat_name - Dropdown",
+  "slug": "chat-chat-name-dropdown",
+  "w": 1440,
+  "h": 960,
+  "x": 2810,
+  "y": 8195
+ },
+ {
+  "id": "1:25391",
+  "name": "Chat - Chat_name - Dropdown",
+  "slug": "chat-chat-name-dropdown-1920",
+  "w": 1920,
+  "h": 1080,
+  "x": 4570,
+  "y": 8195
+ },
+ {
+  "id": "1:25502",
+  "name": "Chat - Focus - Mobile",
+  "slug": "chat-focus-mobile",
+  "w": 390,
+  "h": 844,
+  "x": 6204,
+  "y": 4264
+ },
+ {
+  "id": "1:25538",
+  "name": "Chat - Menu - Mobile",
+  "slug": "chat-menu-mobile",
+  "w": 390,
+  "h": 844,
+  "x": 9828,
+  "y": 4264
+ },
+ {
+  "id": "1:25613",
+  "name": "Chat - Folder_name - Dropdown",
+  "slug": "chat-folder-name-dropdown",
+  "w": 1440,
+  "h": 960,
+  "x": 1050,
+  "y": 8195
+ }
+]
