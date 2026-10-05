@@ -240,6 +240,11 @@ async function build(opts) {
     lib.appendChild(dup);
     if (lx + s.w > 8000) { lx = 0; ly += rowH + 200; rowH = 0; }
     dup.x = lx; dup.y = ly; lx += s.w + 200; rowH = Math.max(rowH, s.h);
+    // state variants (e.g. the conversation with its open menus closed): hide the named layers on the duplicate
+    if (s.hidden && s.hidden.length) {
+      const names = new Set(s.hidden);
+      for (const n of dup.findAll(n => names.has(n.name))) n.visible = false;
+    }
     const comp = figma.createComponentFromNode(dup);
     comp.name = 'Screen / ' + s.name; comp.setPluginData(PLUGIN_KEY, '1');
     comp.description = 'Duplicate of the original frame "' + s.name + '" used by the presentation pages.';

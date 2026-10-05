@@ -8,6 +8,7 @@ class Node {
   rescale(s) { if (!(s > 0)) throw new Error('bad rescale'); this.width *= s; this.height *= s; }
   remove() { if (this.parent) this.parent.children.splice(this.parent.children.indexOf(this), 1); }
   clone() { const n = new Node(this.type); n.name = this.name; n.width = this.width; n.height = this.height; return n; }
+  findAll(f) { const out = []; const walk = n => { for (const c of n.children) { if (f(c)) out.push(c); walk(c); } }; walk(this); return out; }
   setPluginData(k, v) { this._pd[k] = v; } getPluginData(k) { return this._pd[k] || ''; }
   createInstance() { const n = new Node('INSTANCE'); n.width = this.width; n.height = this.height; for (let i = 0; i < 4; i++) { const c = new Node(i % 2 ? 'INSTANCE' : 'FRAME'); c.x = i * 300; c.y = i * 200; c.width = 400; c.height = 300; n.appendChild(c); } return n; }
   detachInstance() { this.type = 'FRAME'; this.layoutMode = 'VERTICAL'; return this; }

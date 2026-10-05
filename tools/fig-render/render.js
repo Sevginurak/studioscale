@@ -248,16 +248,23 @@ function childDelta(n, base) {
   if (Math.abs(dw) < 0.01 && Math.abs(dh) < 0.01) return null;
   return { dw, dh, sx: base.x ? n.size.x / base.x : 1, sy: base.y ? n.size.y / base.y : 1 };
 }
+const HIDE = new Set((process.env.HIDE || '').split(',').filter(Boolean));
 function render(n0, sc, pd) {
+  if (HIDE.has(id(n0.guid))) return '';
   const n = eff(n0, sc);
   if (n.visible === false) return '';
   if (pd && !(n._dsd && (n._dsd.transform || n._dsd.size))) applyConstraints(n, pd);
   if (n.type === 'INSTANCE' && n0.symbolData) {
     const sid = n._swap || n.overriddenSymbolID; const sy = sid && nodes.get(id(sid));
     if (sy && id(sid) !== id(n0.symbolData.symbolID) && sy.size && sy.size.x <= 48 && sy.size.y <= 48) n.size = { x: sy.size.x, y: sy.size.y };
+    if (sy && id(sid) !== id(n0.symbolData.symbolID)) {
+      const ov = (sc && sc.ov.get(n._k)) || {};
+      for (const f of ['effects', 'strokePaints', 'strokeWeight', 'strokeAlign', 'fillPaints', 'opacity']) if (!(f in ov) && f in sy) n[f] = sy[f];
+    }
   }
-  if (process.env.DBG && new RegExp(process.env.DBG).test(n.name)) console.error('DBG', n.name, n._k, JSON.stringify(n.size), n.transform && n.transform.m02, 'dsd', n._dsd && Object.keys(n._dsd).join(','), 'pd', JSON.stringify(pd));
+  if (process.env.DBG && new RegExp(process.env.DBG).test(n.name)) console.error('DBG', n.name, n._k, JSON.stringify(n.size), n.transform && n.transform.m02, 'dsd', n._dsd && Object.keys(n._dsd).join(','), 'pd', JSON.stringify(pd), 'fill', JSON.stringify((n.fillPaints||[]).map(p=>p.color&&[p.color.r,p.color.g,p.color.b].map(v=>Math.round(v*255)).join(','))), 'refs', JSON.stringify((n0.componentPropRefs||[]).map(r=>r.componentPropNodeField)), 'fx', JSON.stringify(n.effects), 'st', JSON.stringify((n.strokePaints||[]).map(p=>[p.visible,p.color])), n.strokeWeight, !!n.strokeGeometry);
   let geoT = '';
+  if (['FRAME', 'INSTANCE', 'SYMBOL', 'ROUNDED_RECTANGLE', 'RECTANGLE'].includes(n.type) && n0.size && n.size && !(n._dsd && n._dsd.fillGeometry) && (Math.abs(n.size.x - n0.size.x) > 0.5 || Math.abs(n.size.y - n0.size.y) > 0.5)) { n.fillGeometry = null; n.strokeGeometry = null; }
   if (n._rs && !(n._dsd && n._dsd.fillGeometry)) {
     if (['FRAME', 'INSTANCE', 'SYMBOL', 'ROUNDED_RECTANGLE', 'RECTANGLE', 'ELLIPSE'].includes(n.type)) { n.fillGeometry = null; n.strokeGeometry = null; }
     else if (n.type === 'TEXT') {
@@ -365,6 +372,7 @@ function renderKids(kids, sc, pd) {
 
 function renderInstance(n0, n, sc) {
   let symId = n._swap || n.overriddenSymbolID || (n.symbolData && n.symbolData.symbolID);
+  for (const pair of (process.env.SWAP || '').split(',').filter(Boolean)) { const [from, to] = pair.split('>'); if (symId && id(symId) === from) symId = nodes.get(to).guid; }
   const swapped = !!(n0.symbolData && n0.symbolData.symbolID && symId && id(symId) !== id(n0.symbolData.symbolID));
   const sym = symId && nodes.get(id(symId));
   if (!sym) { W('missing-symbol'); return ''; }
@@ -474,6 +482,7 @@ for (const f of frames) {
   f.transform = saveT;
   const w = Math.round(f.size.x), h = Math.round(f.size.y);
   let slug = f.name.replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase();
+  if (process.env.SLUG) slug = process.env.SLUG;
   if (used[slug]) slug += '-' + w; used[slug] = 1;
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><defs>${defs.join('')}</defs>${body}</svg>`;
   fs.writeFileSync(path.join(outDir, slug + '.svg'), svg);

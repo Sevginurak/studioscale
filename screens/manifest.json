@@ -232,5 +232,20 @@
   "h": 960,
   "x": 1050,
   "y": 8195
+ },
+ {
+  "id": "1:25280",
+  "name": "Chat - Chat_name - Dropdown",
+  "slug": "chat-reply",
+  "w": 1440,
+  "h": 960,
+  "x": 2810,
+  "y": 8195,
+  "variantOf": "chat-chat-name-dropdown",
+  "hidden": [
+   "Dropdown Menu",
+   "Dropdown Menu",
+   "Cursors / Pointer Cursor"
+  ]
  }
 ]

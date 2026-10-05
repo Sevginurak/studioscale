@@ -110,24 +110,31 @@ function tiltedGrid(o) {
 const B = [];
 
 // 01 · Hero ------------------------------------------------------------------------
+// pointer cursor (vector)
+const pointer = (name, x, y, opacity) => pathN({ name, x, y, w: 26, h: 30, d: 'M1 1L1 21L6.4 16L10.2 24.4L13.8 22.8L10.1 14.6L17 14.6Z', fill: C.white, stroke: { color: C.logoInk, width: 1.8, cap: 'round' }, opacity });
+
 B.push({
   id: 'b01', page: 'behance', file: '01-hero', title: '01 · Hero ▶ animated',
-  keyframes: [{ name: 'Assistants', hold: 1600, duration: 1400 }, { name: 'Chat', hold: 1600, duration: 1400 }],
+  keyframes: [{ name: 'New chat', hold: 900, duration: 1100 }, { name: 'Typing', hold: 900, duration: 1000 }, { name: 'AI reply', hold: 2200, duration: 1100 }],
   build: (kf) => {
-    const h = 1320;
-    const lap = macbook({ name: 'MacBook', slug: 'assistants-desktop', x: (W - 1180) / 2, y: kfv(kf, 330, 318), w: 1180, screenName: 'Screen A', extraScreens: [{ name: 'Screen B', slug: 'chat-focus-desktop', opacity: kfv(kf, 0, 1) }] });
-    const ph = iphone({ name: 'iPhone', slug: 'assistants-mobile', x: 1436, y: kfv(kf, 548, 566), w: 290, rotation: kfv(kf, 0, -2), screenName: 'Screen A', extraScreens: [{ name: 'Screen B', slug: 'chat-focus-mobile', opacity: kfv(kf, 0, 1) }] });
+    const h = 1320, lx = (W - 1180) / 2, ly = 330;
+    // screen origin inside the MacBook (see lib.macbook geometry)
+    const lidW = 1180 * 0.86, sc = (lidW - lidW * 0.024 * 2) / 1440, ox = lx + (1180 - lidW) / 2 + lidW * 0.024, oy = ly + lidW * 0.03;
+    const P = (x, y) => [ox + x * sc, oy + y * sc];
+    const cur = [P(560, 632), P(1186, 680), P(78, 154)][kf];
+    const lap = macbook({ name: 'MacBook', slug: 'chat-focus-desktop', x: lx, y: ly, w: 1180, screenName: 'Screen · New chat', extraScreens: [{ name: 'Screen · Typing', slug: 'chat-typing', opacity: kfv(kf, 0, 1, 1) }, { name: 'Screen · AI reply', slug: 'chat-reply', opacity: kfv(kf, 0, 0, 1) }] });
+    const ph = iphone({ name: 'iPhone', slug: 'chat-focus-mobile', x: 1436, y: kfv(kf, 548, 560, 572), w: 290, rotation: kfv(kf, 0, -1, -2) });
     return frame('01 · Hero ▶ animated', h, { type: 'linear', angle: 180, stops: [[0, '#4338CA'], [0.55, '#2E24A0'], [1, '#1E1760']] }, [
-      blob({ name: 'Glow A', x: kfv(kf, -260, -60), y: -300, w: 980, color: C.lavender, opacity: 0.55, blur: 230 }),
-      blob({ name: 'Glow B', x: kfv(kf, 1320, 1180), y: kfv(kf, 380, 300), w: 720, color: C.peach, opacity: 0.26, blur: 240 }),
+      blob({ name: 'Glow A', x: kfv(kf, -260, -160, -60), y: -300, w: 980, color: C.lavender, opacity: 0.55, blur: 230 }),
+      blob({ name: 'Glow B', x: kfv(kf, 1320, 1250, 1180), y: kfv(kf, 380, 340, 300), w: 720, color: C.peach, opacity: 0.26, blur: 240 }),
       blob({ name: 'Glow C', x: 520, y: 760, w: 980, h: 520, color: '#6D64E8', opacity: 0.5, blur: 220 }),
       dots({ x: 0, y: 0, w: W, h, color: 'rgba(255,255,255,0.10)', gap: 28, size: 2 }),
       rect({ name: 'Interface shape', x: 200, y: 470, w: W - 400, h: 690, radius: 64, fill: 'rgba(255,255,255,0.06)', stroke: { color: 'rgba(255,255,255,0.12)', width: 1 } }),
       logo({ x: (W - 250) / 2, y: 92, w: 250, variant: 'white' }),
       text({ name: 'Tagline', text: 'AI chat and assistants for schools', size: 30, weight: 400, color: 'rgba(255,255,255,0.8)', align: 'center', cx: W / 2, y: 222, lh: 38 }),
       lap,
-      crop('cardGeometry', { name: 'Detail · Assistant card', x: 150, y: kfv(kf, 800, 822), scale: 0.95, rotation: kfv(kf, -4, -2), shadow: SH.deep }),
       ph,
+      pointer('Cursor', cur[0], cur[1]),
       wave(W, h - 120, 120, C.canvas, 'wave'),
     ]);
   },
@@ -139,7 +146,7 @@ B.push({
   build: () => {
     const h = 1160;
     const intro = 'EdSpace brings an AI chat and custom assistants together for teachers. Start from a blank chat, add a context book or a PDF, choose a model, and keep conversations organised in folders. Assistants can stay private, be published, or be joined with a code.';
-    const facts = [['Product', 'AI chat & assistants'], ['Platform', 'Web, tablet, mobile'], ['Screens', '26'], ['Typeface', 'Degular']];
+    const facts = [['Product', 'AI-native web app'], ['Platform', 'Web, tablet, mobile']];
     const fx = 1080;
     return frame('02 · About', h, C.canvas, [
       rect({ name: 'Interface shape', x: -140, y: 110, w: 1080, h: 930, radius: 72, fill: C.white }),
@@ -273,7 +280,7 @@ B.push({
       dots({ x: 0, y: 0, w: W, h, color: 'rgba(45,40,34,0.10)', gap: 24 }),
       blob({ name: 'Glow', x: 1200, y: -200, w: 800, color: C.white, opacity: 0.7, blur: 200 }),
       heading({ x: M, y: 150, label: 'Colors', title: 'Indigo on warm neutrals', chipFill: 'rgba(67,56,202,0.10)' }),
-      ...row([{ color: C.indigo, name: 'Indigo', role: 'Primary' }, { color: C.ink, name: 'Ink', role: 'Secondary' }, { color: C.peach, name: 'Peach', role: 'Accent' }], 340, 380),
+      ...row([{ color: C.indigo, name: 'Indigo', role: 'Primary' }, { color: C.peach, name: 'Peach', role: 'Secondary' }, { color: C.ink, name: 'Ink', role: 'Text' }], 340, 380),
       label('Brand tints', M, 770),
       ...row([{ color: C.lavender, name: 'Lavender' }, { color: C.mint, name: 'Mint' }, { color: C.peachLight, name: 'Apricot' }, { color: C.sky, name: 'Sky' }, { color: C.orchid, name: 'Orchid' }, { color: C.blueLight, name: 'Mist' }], 806, 250),
       label('Surfaces', M, 1110),
@@ -401,7 +408,7 @@ B.push({
     const list = ['assistants-desktop', 'assistants-search', 'chat-focus-desktop', 'assistants-active', 'assistants-all-empty-state', 'chat-typing', 'assistants-loading-state', 'chat-error', 'assistants-private-empty-state', 'chat-enabled', 'assistants-search-no-found', 'assistants-published-empty-state', 'assistants-draft-empty-state', 'assistants-search-numbers-no-found'];
     return frame('10 · Visual break ▶ animated', h, { type: 'linear', angle: 180, stops: [[0, '#4338CA'], [1, '#2B219B']] }, [
       blob({ name: 'Glow', x: 500, y: 200, w: 1000, color: '#7A71F0', opacity: 0.6, blur: 260 }),
-      tiltedGrid({ cx: W / 2, cy: h / 2, cols: 7, rows: 5, colW: 460, gap: 30, list, angle: -24, drift: 170, kf, radius: 12 }),
+      tiltedGrid({ cx: W / 2, cy: h / 2, cols: 5, rows: 4, colW: 720, gap: 40, list, angle: -24, drift: 200, kf, radius: 16 }),
       wave(W, h - 100, 100, C.canvas, 'wave'),
     ]);
   },
@@ -426,7 +433,7 @@ B.push({
         crop('badgePublished', { name: 'Badge · Published', x: 136, y: 340, scale: 1.7, radius: 14 }),
         crop('badgePrivate', { name: 'Badge · Private', x: 322, y: 340, scale: 1.7, radius: 14 }),
       ]),
-      wave(W, h - 100, 100, C.mint, 'curve'),
+      wave(W, h - 100, 100, '#EFEEFB', 'curve'),
     ]);
   },
 });
@@ -459,9 +466,9 @@ B.push({
       ]);
     });
     const h = top + 2 * ch + g + 200;
-    return frame('12 · Empty states ▶ animated', h, { type: 'linear', angle: 180, stops: [[0, C.mint], [1, '#F3FFF9']] }, [
+    return frame('12 · Empty states ▶ animated', h, { type: 'linear', angle: 180, stops: [[0, '#EFEEFB'], [1, '#F7F6FD']] }, [
       blob({ name: 'Glow', x: 900, y: 200, w: 900, color: C.white, opacity: 0.9, blur: 240 }),
-      heading({ x: M, y: 140, label: 'Empty states', title: 'Illustrations for every empty state', chipFill: 'rgba(6,118,71,0.10)', labelColor: C.success, dot: C.success }),
+      heading({ x: M, y: 140, label: 'Empty states', title: 'Illustrations for every empty state' }),
       ...cards,
       wave(W, h - 100, 100, '#1E1760', 'diagonal'),
     ]);
@@ -534,16 +541,18 @@ const DW = 800, DH = 600;
 const dframe = (name, fill, children) => ({ type: 'frame', name, w: DW, h: DH, fill, children: children.filter(Boolean) });
 
 D.push({
-  id: 'd01', page: 'dribbble', file: '01-single-screen-hero', title: '01 · Single-screen hero ▶ animated',
-  keyframes: [{ name: 'Focus', hold: 1200, duration: 1200 }, { name: 'Typing', hold: 1600, duration: 1200 }],
-  build: (kf) => dframe('01 · Single-screen hero ▶ animated', { type: 'linear', angle: 160, stops: [[0, '#4F45D6'], [1, '#1E1760']] }, [
-    blob({ name: 'Glow A', x: kfv(kf, -160, -100), y: -200, w: 520, color: C.lavender, opacity: 0.55, blur: 140 }),
-    blob({ name: 'Glow B', x: 560, y: kfv(kf, 320, 260), w: 360, color: C.peach, opacity: 0.25, blur: 130 }),
+  id: 'd01', page: 'dribbble', file: '01-single-screen-hero', title: '01 · Cover ▶ animated',
+  keyframes: [{ name: 'Typing', hold: 1200, duration: 1300 }, { name: 'AI reply', hold: 1800, duration: 1300 }],
+  build: (kf) => dframe('01 · Cover ▶ animated', { type: 'linear', angle: 160, stops: [[0, '#4F45D6'], [1, '#1E1760']] }, [
+    blob({ name: 'Glow A', x: kfv(kf, -180, -120), y: -220, w: 560, color: C.lavender, opacity: 0.6, blur: 150 }),
+    blob({ name: 'Glow B', x: 520, y: kfv(kf, 380, 330), w: 380, color: C.peach, opacity: 0.3, blur: 140 }),
     dots({ x: 0, y: 0, w: DW, h: DH, color: 'rgba(255,255,255,0.10)', gap: 20, size: 1.5 }),
-    logo({ x: 40, y: 34, w: 108, variant: 'white' }),
-    browser({ name: 'Browser', slug: 'chat-focus-desktop', x: 120, y: 124, w: 700, shadow: SH.deep }),
-    browser({ name: 'Browser typing', slug: 'chat-typing', x: 120, y: 124, w: 700, shadow: false, opacity: kfv(kf, 0, 1) }),
-    crop('model', { name: 'Detail · Model', x: kfv(kf, 46, 52), y: kfv(kf, 430, 420), scale: 1.5, shadow: SH.deep }),
+    logo({ x: 40, y: 36, w: 104, variant: 'white' }),
+    text({ name: 'Headline', text: 'AI chat for\nevery classroom', size: 38, weight: 500, ls: -0.03, color: C.white, x: 40, y: 112, lh: 42 }),
+    browser({ name: 'Browser', slug: 'chat-typing', x: 300, y: 150, w: 640, shadow: SH.deep }),
+    browser({ name: 'Browser reply', slug: 'chat-reply', x: 300, y: 150, w: 640, shadow: false, opacity: kfv(kf, 0, 1) }),
+    iphone({ name: 'iPhone', slug: 'chat-focus-mobile', x: 130, y: kfv(kf, 250, 236), w: 170, rotation: kfv(kf, -6, -4), shadow: SH.deep }),
+    crop('composer', { name: 'Detail · Composer', x: 400, y: kfv(kf, 478, 462), scale: 0.56, shadow: SH.deep, opacity: kfv(kf, 1, 0) }),
   ]),
 });
 
