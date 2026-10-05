@@ -252,6 +252,10 @@ function render(n0, sc, pd) {
   const n = eff(n0, sc);
   if (n.visible === false) return '';
   if (pd && !(n._dsd && (n._dsd.transform || n._dsd.size))) applyConstraints(n, pd);
+  if (n.type === 'INSTANCE' && n0.symbolData) {
+    const sid = n._swap || n.overriddenSymbolID; const sy = sid && nodes.get(id(sid));
+    if (sy && id(sid) !== id(n0.symbolData.symbolID) && sy.size && sy.size.x <= 48 && sy.size.y <= 48) n.size = { x: sy.size.x, y: sy.size.y };
+  }
   if (process.env.DBG && new RegExp(process.env.DBG).test(n.name)) console.error('DBG', n.name, n._k, JSON.stringify(n.size), n.transform && n.transform.m02, 'dsd', n._dsd && Object.keys(n._dsd).join(','), 'pd', JSON.stringify(pd));
   let geoT = '';
   if (n._rs && !(n._dsd && n._dsd.fillGeometry)) {
@@ -361,11 +365,14 @@ function renderKids(kids, sc, pd) {
 
 function renderInstance(n0, n, sc) {
   let symId = n._swap || n.overriddenSymbolID || (n.symbolData && n.symbolData.symbolID);
+  const swapped = !!(n0.symbolData && n0.symbolData.symbolID && symId && id(symId) !== id(n0.symbolData.symbolID));
   const sym = symId && nodes.get(id(symId));
   if (!sym) { W('missing-symbol'); return ''; }
   let nsc;
   if (!sc) { nsc = { path: [], ov: new Map(), dsd: new Map() }; }
   else { nsc = { path: n._k.split('/'), ov: sc.ov, dsd: sc.dsd, noDsd: sc.noDsd }; }
+  // a swapped icon: derived layout belongs to the placeholder, so render the new component from its own geometry
+  if (swapped && sym.size && sym.size.x <= 48 && sym.size.y <= 48) nsc.noDsd = nsc.noDsd || 1;
   // instance resized with the Scale tool: render the component at its own size, scaled uniformly
   let scaleWrap = 0;
   if (n.size && sym.size && sym.size.x) {

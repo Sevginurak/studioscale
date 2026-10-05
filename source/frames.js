@@ -146,7 +146,7 @@ B.push({
       dots({ x: 0, y: 0, w: 960, h: 110, color: 'rgba(45,40,34,0.14)', gap: 24 }),
       brackets({ name: 'Brackets', x: 70, y: 160, w: 940, h: 830, color: C.indigo, len: 90, t: 7, r: 22 }),
       browser({ name: 'Window · Assistants', slug: 'assistants-desktop', x: 110, y: 205, w: 760 }),
-      browser({ name: 'Window · Chat', slug: 'chat-chat-name-dropdown', x: 330, y: 520, w: 640, shadow: SH.deep }),
+      browser({ name: 'Window · Chat', slug: 'chat-typing', x: 330, y: 520, w: 640, shadow: SH.deep }),
       heading({ x: fx, y: 230, label: 'About the project', title: 'What would you like\nto do today?', size: 60 }),
       text({ name: 'Intro', text: wrap(intro, 22, 400, 620), size: 22, lh: 34, color: BODY, x: fx, y: 470 }),
       group({ name: 'Facts', x: fx, y: 760, w: 640, h: 200 }, facts.flatMap(([k, v], i) => {
@@ -170,13 +170,13 @@ B.push({
     const steps = [
       { n: '01', t: 'Ask', c: 'What would you like to do today?', slug: 'chat-focus-desktop', x: M, y: 420 },
       { n: '02', t: 'Type', c: 'Help me solve this math problem step by step', slug: 'chat-typing', x: W - M - sw, y: 540 },
-      { n: '03', t: 'Move', c: 'Rename  /  Move to  /  Delete', slug: 'chat-chat-name-dropdown', x: M, y: 1150 },
-      { n: '04', t: 'Organise', c: 'Edit folder  /  See sources  /  Delete folder', slug: 'chat-folder-name-dropdown', x: W - M - sw, y: 1270 },
+      { n: '03', t: 'Browse assistants', c: 'All  /  Draft  /  Private  /  Published', slug: 'assistants-desktop', x: M, y: 1150 },
+      { n: '04', t: 'Find one', c: 'Search assistants', slug: 'assistants-search', x: W - M - sw, y: 1270 },
     ];
     const sh = sw * 960 / 1440;
     return frame('03 · Key flow', h, { type: 'linear', angle: 180, stops: [[0, C.indigoTint], [1, '#EFEEFB']] }, [
       dots({ x: 0, y: 0, w: W, h, color: 'rgba(67,56,202,0.16)', gap: 26 }),
-      heading({ x: M, y: 140, label: 'Key flow', title: 'Start a chat, keep it organised' }),
+      heading({ x: M, y: 140, label: 'Key flow', title: 'From a question to the right assistant' }),
       ...steps.flatMap(s => [
         numBadge(s.n, s.x, s.y - 86),
         text({ name: 'Step title ' + s.n, text: s.t, size: 26, weight: 500, x: s.x + 70, y: s.y - 88, lh: 30 }),
@@ -293,32 +293,28 @@ B.push({
 B.push({
   id: 'b06', page: 'behance', file: '06-ui-elements', title: '06 · UI Elements',
   build: () => {
-    const h = 1560, c1 = M, c2 = M + 540, c3 = M + 1080, cw = 516;
+    const h = 1220, c1 = M, c2 = M + 540, c3 = M + 1080, cw = 516;
     const at = (k, x, y, s, name) => crop(k, { x, y, scale: s, name: name || ('Element / ' + k), shadow: SH.card });
     return frame('06 · UI Elements', h, { type: 'linear', angle: 180, stops: [[0, '#EFEEFB'], [1, C.indigoTint]] }, [
       blob({ name: 'Glow A', x: -200, y: 600, w: 900, color: C.white, opacity: 0.8, blur: 220 }),
-      blob({ name: 'Glow B', x: 1300, y: 1000, w: 700, color: C.lavender, opacity: 0.35, blur: 220 }),
+      blob({ name: 'Glow B', x: 1300, y: 800, w: 700, color: C.lavender, opacity: 0.35, blur: 220 }),
       rect({ name: 'Interface shape A', x: 1180, y: -160, w: 760, h: 520, radius: 80, fill: 'rgba(255,255,255,0.35)' }),
-      rect({ name: 'Interface shape B', x: -220, y: 1080, w: 700, h: 420, radius: 80, fill: 'rgba(255,255,255,0.35)' }),
       heading({ x: M, y: 140, label: 'UI Elements', title: 'Components from the product' }),
       at('composer', c1, 330, 1060 / 736),
       at('toggle', c3, 330, 1.6),
       at('tabs', c3, 410, 1.5),
       at('model', c3 + 262, 418, 1.6),
+      at('searchField', c3, 516, 1.5),
       at('cardGeometry', c1, 600, cw / 366),
       at('cardWar', c2, 600, cw / 366),
-      at('menu', c3, 506, 1.1),
-      at('submenu', c3 + 270, 540, 1.1),
-      at('empty', c1, 868, cw / 722),
-      at('pdf', c2, 868, 1.6),
-      at('alert', c2, 1014, 1.45),
-      at('bubble', c2, 1134, cw / 588),
-      at('searchField', c3, 790, 1.5),
-      at('filters', c3, 884, 1.55),
-      at('sideHeader', c3, 978, 1.55),
-      at('sideFolders', c1, 1144, 1.45),
-      at('breadcrumb', c2, 1232, 1.6),
-      at('folderMenu', c3, 1080, 1.5),
+      at('filters', c3, 612, 1.55),
+      at('sideHeader', c3, 708, 1.55),
+      at('badgeDraft', c3, 818, 1.5),
+      at('badgePublished', c3 + 124, 818, 1.5),
+      at('badgePrivate', c3 + 295, 818, 1.5),
+      at('bubble', c1, 876, cw / 588),
+      at('alert', c1, 972, 1.45),
+      at('pdf', c2, 876, 1.6),
       wave(W, h - 100, 100, C.canvas, 'wave'),
     ]);
   },
@@ -328,19 +324,17 @@ B.push({
 B.push({
   id: 'b07', page: 'behance', file: '07-ui-design-desktop', title: '07 · UI Design — Desktop',
   build: () => {
-    const g = 36, colW = (W - 2 * M - 2 * g) / 3;
-    const list = ['chat-focus-desktop', 'assistants-desktop', 'chat-typing', 'assistants-loading-state', 'chat-chat-name-dropdown', 'assistants-search', 'chat-error', 'assistants-search-no-found', 'chat-folder-name-dropdown', 'assistants-active', 'chat-enabled', 'assistants-search-numbers-no-found', 'chat-focus-desktop-large', 'assistants-all-empty-state', 'chat-chat-name-dropdown-1920', 'assistants-private-empty-state', 'assistants-published-empty-state', 'assistants-draft-empty-state'];
-    const top = 1300, off = [0, 110, 40];
-    const ys = [top + off[0], top + off[1], top + off[2]];
+    const g = 36, colW = (W - 2 * M - g) / 2;
+    const list = ['chat-focus-desktop', 'assistants-desktop', 'chat-typing', 'assistants-search', 'chat-error', 'assistants-loading-state'];
+    const ys = [1300, 1380];
     const items = list.map((slug, i) => {
-      const c = i % 3; const b = browser({ name: 'Screen ' + (i + 1), slug, x: M + c * (colW + g), y: ys[c], w: colW, shadow: SH.soft });
+      const c = i % 2; const b = browser({ name: 'Screen ' + (i + 1), slug, x: M + c * (colW + g), y: ys[c], w: colW, shadow: SH.soft });
       ys[c] += b.h + g; return b;
     });
-    const h = Math.round(Math.max(...ys) + 160);
+    const h = Math.round(Math.max(...ys) + 140);
     return frame('07 · UI Design — Desktop', h, { type: 'linear', angle: 180, stops: [[0, C.canvas], [1, '#F7F6F4']] }, [
       dots({ x: 0, y: 0, w: W, h: 1250, color: 'rgba(45,40,34,0.10)', gap: 24 }),
       heading({ x: M, y: 140, label: 'UI Design', title: 'Desktop' }),
-      text({ name: 'Count', text: '19 desktop screens', size: 22, color: BODY, rx: W - M, align: 'right', y: 250 }),
       browser({ name: 'Hero screen', slug: 'assistants-desktop-large', x: M, y: 330, w: W - 2 * M, shadow: SH.float }),
       ...items,
       wave(W, h - 100, 100, C.peachLight, 'curve'),
@@ -352,18 +346,17 @@ B.push({
 B.push({
   id: 'b08', page: 'behance', file: '08-ui-design-tablet-mobile', title: '08 · UI Design — Tablet & Mobile',
   build: () => {
-    const tw = 372, tg = (W - 2 * M - 4 * tw) / 3;
-    const tabs = TABLET.map((slug, i) => screen({ name: 'Tablet ' + (i + 1), slug, x: M + i * (tw + tg), y: 330 + (i % 2 ? 90 : 0), w: tw, radius: 22, shadow: SH.float }));
+    const tw = 500, tg = 80, tx = (W - 2 * tw - tg) / 2;
+    const tabs = ['assistants-tablet', 'chat-focus-tablet'].map((slug, i) => screen({ name: 'Tablet ' + (i + 1), slug, x: tx + i * (tw + tg), y: 330 + i * 80, w: tw, radius: 26, shadow: SH.float }));
     const pw = 330, pg = 150, px0 = (W - (3 * pw + 2 * pg)) / 2;
-    const phones = MOBILE.map((slug, i) => iphone({ name: 'iPhone ' + (i + 1), slug, x: px0 + i * (pw + pg), y: 1080 + (i === 1 ? -60 : 0), w: pw }));
-    const h = 1900;
+    const phones = MOBILE.map((slug, i) => iphone({ name: 'iPhone ' + (i + 1), slug, x: px0 + i * (pw + pg), y: 1250 + (i === 1 ? -60 : 0), w: pw }));
+    const h = 2060;
     return frame('08 · UI Design — Tablet & Mobile', h, { type: 'linear', angle: 180, stops: [[0, C.peachLight], [1, '#FFF4EA']] }, [
       blob({ name: 'Glow', x: 600, y: 800, w: 900, color: C.white, opacity: 0.9, blur: 260 }),
-      blob({ name: 'Glow peach', x: -300, y: 1200, w: 800, color: C.peach, opacity: 0.35, blur: 260 }),
+      blob({ name: 'Glow peach', x: -300, y: 1300, w: 800, color: C.peach, opacity: 0.35, blur: 260 }),
       heading({ x: M, y: 140, label: 'UI Design', title: 'Tablet & mobile', chipFill: 'rgba(67,56,202,0.08)' }),
-      text({ name: 'Count', text: '4 tablet and 3 mobile screens', size: 22, color: BODY, rx: W - M, align: 'right', y: 250 }),
       ...tabs,
-      rect({ name: 'Interface shape', x: M - 40, y: 1020, w: W - 2 * M + 80, h: 760, radius: 72, fill: 'rgba(255,255,255,0.55)' }),
+      rect({ name: 'Interface shape', x: M - 40, y: 1190, w: W - 2 * M + 80, h: 760, radius: 72, fill: 'rgba(255,255,255,0.55)' }),
       ...phones,
       wave(W, h - 100, 100, C.white, 'diagonal'),
     ]);
@@ -405,11 +398,10 @@ B.push({
   keyframes: [{ name: 'Rest', hold: 300, duration: 3200, ease: 'inout' }, { name: 'Drift', hold: 300, duration: 3200, ease: 'inout' }],
   build: (kf) => {
     const h = 1100;
-    const list = ['assistants-desktop', 'chat-chat-name-dropdown', 'assistants-search', 'chat-focus-desktop', 'assistants-active', 'chat-folder-name-dropdown', 'assistants-all-empty-state', 'chat-typing', 'assistants-loading-state', 'chat-error', 'assistants-private-empty-state', 'chat-enabled', 'assistants-search-no-found', 'assistants-published-empty-state', 'assistants-draft-empty-state', 'assistants-search-numbers-no-found'];
+    const list = ['assistants-desktop', 'assistants-search', 'chat-focus-desktop', 'assistants-active', 'assistants-all-empty-state', 'chat-typing', 'assistants-loading-state', 'chat-error', 'assistants-private-empty-state', 'chat-enabled', 'assistants-search-no-found', 'assistants-published-empty-state', 'assistants-draft-empty-state', 'assistants-search-numbers-no-found'];
     return frame('10 · Visual break ▶ animated', h, { type: 'linear', angle: 180, stops: [[0, '#4338CA'], [1, '#2B219B']] }, [
       blob({ name: 'Glow', x: 500, y: 200, w: 1000, color: '#7A71F0', opacity: 0.6, blur: 260 }),
       tiltedGrid({ cx: W / 2, cy: h / 2, cols: 7, rows: 5, colW: 460, gap: 30, list, angle: -24, drift: 170, kf, radius: 12 }),
-      rect({ name: 'Shade', x: 0, y: 0, w: W, h, fill: { type: 'radial', cx: 0.5, cy: 0.5, stops: [[0, 'rgba(30,23,96,0)'], [0.7, 'rgba(30,23,96,0.15)'], [1, 'rgba(30,23,96,0.55)']] } }),
       wave(W, h - 100, 100, C.canvas, 'wave'),
     ]);
   },
@@ -442,21 +434,35 @@ B.push({
 // 12 · Empty states (cascading windows) ▶ animated ------------------------------------
 B.push({
   id: 'b12', page: 'behance', file: '12-empty-states', title: '12 · Empty states ▶ animated',
-  keyframes: [{ name: 'Stacked', hold: 1300, duration: 1500 }, { name: 'Spread', hold: 1600, duration: 1500 }],
+  keyframes: [{ name: 'Rest', hold: 900, duration: 1600 }, { name: 'Float', hold: 900, duration: 1600 }],
   build: (kf) => {
-    const h = 1240, ww = 820;
-    const list = ['assistants-draft-empty-state', 'assistants-published-empty-state', 'assistants-private-empty-state', 'assistants-all-empty-state'];
-    const names = ['Draft', 'Published', 'Private', 'All'];
+    const g = 32, cw = (W - 2 * M - 2 * g) / 3, ch = 400, top = 400;
+    const items = [
+      ['assistants-all-empty-state', 'No assistant yet.', 'Create your first assistant to start guiding students with custom learning experience.'],
+      ['assistants-private-empty-state', 'No private assistant yet.', 'Assistants you haven’t shared yet will appear here.'],
+      ['assistants-published-empty-state', 'No published assistants right now.', 'Share an assistant to make it available for students.'],
+      ['assistants-draft-empty-state', 'Draft is empty.', 'Assistants you haven’t used or shared will appear here when you create them.'],
+      ['assistants-search-no-found', 'No assistants found.', 'No assistants match “Turkish”. Try a different search term.'],
+      ['assistants-search-numbers-no-found', 'Looks like you’ve entered an assistant code.', 'Assistant codes can’t be searched.'],
+    ];
+    const z = 2.3, il = { x: 795, y: 443, w: 110, h: 94 };
+    const cards = items.map(([slug, t, d], i) => {
+      const x = M + (i % 3) * (cw + g), y = top + Math.floor(i / 3) * (ch + g);
+      const ill = screen({ name: 'Illustration', slug, crop: il, scale: z });
+      const lift = kfv(kf, 0, i % 2 ? 10 : -10);
+      return group({ name: 'Empty state ' + (i + 1), x, y, w: cw, h: ch }, [
+        rect({ name: 'Card', x: 0, y: 0, w: cw, h: ch, radius: 28, fill: C.white, shadow: SH.card }),
+        rect({ name: 'Panel', x: 12, y: 12, w: cw - 24, h: 240, radius: 20, fill: C.canvas }),
+        Object.assign(ill, { x: (cw - ill.w) / 2, y: 12 + (240 - ill.h) / 2 + lift }),
+        text({ name: 'Title', text: t, size: 22, weight: 600, x: 28, y: 274, lh: 28 }),
+        text({ name: 'Description', text: wrap(d, 17, 400, cw - 56), size: 17, lh: 25, color: BODY, x: 28, y: 310 }),
+      ]);
+    });
+    const h = top + 2 * ch + g + 200;
     return frame('12 · Empty states ▶ animated', h, { type: 'linear', angle: 180, stops: [[0, C.mint], [1, '#F3FFF9']] }, [
-      blob({ name: 'Glow', x: 900, y: 300, w: 900, color: C.white, opacity: 0.9, blur: 240 }),
-      blob({ name: 'Glow indigo', x: kfv(kf, 1300, 1200), y: kfv(kf, 700, 620), w: 600, color: C.lavender, opacity: 0.3, blur: 220 }),
-      group({ name: 'Copy', x: M, y: 330, w: 560, h: 480 }, [
-        chip({ text: 'Empty states', x: 0, y: 0, color: C.success, fill: 'rgba(6,118,71,0.10)' }),
-        text({ name: 'Title', text: 'No assistant yet.', size: 72, weight: 500, ls: -0.03, x: -2, y: 56, lh: 78 }),
-        text({ name: 'Caption', text: wrap('Every filter has its own empty state: All, Private, Published and Draft.', 24, 400, 470), size: 24, lh: 36, color: BODY, x: 0, y: 170 }),
-        crop('filters', { name: 'Detail · Filters', x: 0, y: 300, scale: 1.6 }),
-      ]),
-      ...list.map((slug, i) => browser({ name: 'Window · ' + names[i], slug, x: kfv(kf, 780 + i * 66, 716 + i * 92), y: kfv(kf, 190 + i * 92, 166 + i * 108), w: ww, rotation: kfv(kf, 0, (i - 1.5) * 1.6), shadow: SH.float })),
+      blob({ name: 'Glow', x: 900, y: 200, w: 900, color: C.white, opacity: 0.9, blur: 240 }),
+      heading({ x: M, y: 140, label: 'Empty states', title: 'Illustrations for every empty state', chipFill: 'rgba(6,118,71,0.10)', labelColor: C.success, dot: C.success }),
+      ...cards,
       wave(W, h - 100, 100, '#1E1760', 'diagonal'),
     ]);
   },
@@ -477,38 +483,17 @@ B.push({
         text({ name: 'Title', text: 'Conversation', size: 68, weight: 500, ls: -0.03, color: C.white, x: -2, y: 40, lh: 74 }),
         text({ name: 'Caption', text: wrap('Replies, attached files and message actions in one thread.', 24, 400, 400), size: 24, lh: 36, color: 'rgba(255,255,255,0.7)', x: 0, y: 146 }),
       ]),
-      wave(W, h - 100, 100, C.indigoTint, 'wave'),
-    ]);
-  },
-});
-
-// 14 · Feature — Folders -------------------------------------------------------------
-B.push({
-  id: 'b14', page: 'behance', file: '14-feature-folders', title: '14 · Feature — Folders',
-  build: () => {
-    const h = 1500;
-    const pad = ipad({ name: 'iPad', slug: 'chat-more-tablet', x: 300, y: 430, w: 600 });
-    return frame('14 · Feature — Folders', h, { type: 'linear', angle: 180, stops: [[0, C.indigoTint], [1, '#F4F3FC']] }, [
-      dots({ x: 0, y: 0, w: W, h, color: 'rgba(67,56,202,0.14)', gap: 26 }),
-      rect({ name: 'Interface shape', x: 980, y: 470, w: 760, h: 820, radius: 72, fill: 'rgba(255,255,255,0.6)' }),
-      heading({ cx: W / 2, y: 120, align: 'center', label: 'Feature 03', title: 'Folders', size: 104, caption: 'Rename, move or delete a chat, and keep classes in folders.', capW: 760 }),
-      pad,
-      crop('sideFolders', { name: 'Detail · Sidebar folders', x: 110, y: 980, scale: 1.5, rotation: -3 }),
-      crop('menu', { name: 'Detail · Chat menu', x: 1060, y: 560, scale: 1.9 }),
-      crop('submenu', { name: 'Detail · Move to', x: 1290, y: 700, scale: 1.7 }),
-      crop('folderMenu', { name: 'Detail · Folder menu', x: 1080, y: 1060, scale: 1.8 }),
-      arrow('Connector', [870, 560], [940, 520], [990, 560], [1040, 600]),
-      wave(W, h - 100, 100, C.canvas, 'curve'),
+      wave(W, h - 100, 100, C.canvas, 'wave'),
     ]);
   },
 });
 
 // 15 · Responsive ------------------------------------------------------------------
 B.push({
-  id: 'b15', page: 'behance', file: '15-responsive', title: '15 · Responsive',
+  id: 'b14', page: 'behance', file: '14-responsive', title: '14 · Responsive',
   build: () => {
     const h = 1240;
-    return frame('15 · Responsive', h, { type: 'linear', angle: 180, stops: [[0, C.canvas], [1, C.white]] }, [
+    return frame('14 · Responsive', h, { type: 'linear', angle: 180, stops: [[0, C.canvas], [1, C.white]] }, [
       blob({ name: 'Glow', x: 900, y: 400, w: 900, color: C.lavender, opacity: 0.3, blur: 260 }),
       blob({ name: 'Glow peach', x: 1400, y: 100, w: 600, color: C.peach, opacity: 0.3, blur: 220 }),
       rect({ name: 'Interface shape', x: 640, y: 250, w: 1300, h: 820, radius: 80, fill: 'rgba(255,255,255,0.75)' }),
@@ -523,17 +508,16 @@ B.push({
 
 // 16 · Closing ▶ animated ------------------------------------------------------------
 B.push({
-  id: 'b16', page: 'behance', file: '16-closing', title: '16 · Closing ▶ animated',
+  id: 'b15', page: 'behance', file: '15-closing', title: '15 · Closing ▶ animated',
   keyframes: [{ name: 'Rest', hold: 300, duration: 3400 }, { name: 'Drift', hold: 300, duration: 3400 }],
   build: (kf) => {
     const h = 1100;
-    const list = ['chat-chat-name-dropdown', 'assistants-desktop', 'chat-focus-desktop', 'assistants-search', 'chat-folder-name-dropdown', 'assistants-active', 'chat-typing', 'assistants-loading-state', 'chat-error', 'assistants-all-empty-state'];
-    return frame('16 · Closing ▶ animated', h, '#4338CA', [
+    const list = ['assistants-desktop', 'chat-focus-desktop', 'assistants-search', 'assistants-active', 'chat-typing', 'assistants-loading-state', 'chat-error', 'assistants-all-empty-state'];
+    return frame('15 · Closing ▶ animated', h, '#4338CA', [
       blob({ name: 'Glow', x: -200, y: 300, w: 900, color: C.lavender, opacity: 0.45, blur: 260 }),
-      group({ name: 'Grid area', x: W / 2, y: 0, w: W / 2, h, clip: true }, [
-        tiltedGrid({ cx: W / 4 + 60, cy: h / 2, cols: 4, rows: 5, colW: 420, gap: 28, list, angle: -24, drift: 160, kf, radius: 12 }),
+      group({ name: 'Grid area', x: W / 2 + 40, y: 0, w: W / 2 - 40, h, clip: true, radius: [56, 0, 0, 56], fill: '#2B219B' }, [
+        tiltedGrid({ cx: W / 4 + 40, cy: h / 2, cols: 4, rows: 5, colW: 420, gap: 28, list, angle: -24, drift: 160, kf, radius: 12 }),
       ]),
-      rect({ name: 'Fade', x: W / 2 - 1, y: 0, w: 220, h, fill: { type: 'linear', angle: 90, stops: [[0, 'rgba(67,56,202,1)'], [1, 'rgba(67,56,202,0)']] } }),
       logo({ x: 170, y: 380, w: 320, variant: 'white' }),
       text({ name: 'Thanks', text: 'Thank you for watching', size: 60, weight: 500, ls: -0.03, color: C.white, x: 170, y: 560, lh: 66 }),
       text({ name: 'URL', text: 'app.edspace.com', size: 22, color: C.lavender, x: 172, y: 650, lh: 30 }),
@@ -600,10 +584,10 @@ D.push({
   keyframes: [{ name: 'Rest', hold: 900, duration: 1600 }, { name: 'Float', hold: 900, duration: 1600 }],
   build: (kf) => dframe('05 · Feature highlight ▶ animated', { type: 'linear', angle: 180, stops: [[0, C.indigoTint], [1, '#F5F4FD']] }, [
     blob({ name: 'Glow', x: kfv(kf, 420, 380), y: 260, w: 420, color: C.lavender, opacity: 0.4, blur: 140 }),
-    browser({ name: 'Browser', slug: 'chat-chat-name-dropdown', x: 200, y: 112, w: 560, shadow: SH.float }),
-    crop('menu', { name: 'Detail · Chat menu', x: 34, y: kfv(kf, 150, 136), scale: 1.5, shadow: SH.deep }),
-    crop('submenu', { name: 'Detail · Move to', x: 492, y: kfv(kf, 96, 110), scale: 1.25, shadow: SH.deep }),
-    crop('pdf', { name: 'Detail · PDF', x: 96, y: kfv(kf, 432, 446), scale: 1.5, shadow: SH.deep }),
+    browser({ name: 'Browser', slug: 'assistants-desktop', x: 200, y: 112, w: 560, shadow: SH.float }),
+    crop('searchField', { name: 'Detail · Search', x: 470, y: kfv(kf, 70, 84), scale: 1.05, shadow: SH.deep }),
+    crop('cardGeometry', { name: 'Detail · Assistant', x: 30, y: kfv(kf, 300, 284), scale: 1.05, shadow: SH.deep }),
+    crop('badgePrivate', { name: 'Detail · Private', x: 620, y: kfv(kf, 470, 456), scale: 1.6, shadow: SH.deep }),
   ]),
 });
 
@@ -612,7 +596,7 @@ D.push({
   keyframes: [{ name: 'Rest', hold: 200, duration: 2800 }, { name: 'Drift', hold: 200, duration: 2800 }],
   build: (kf) => dframe('06 · Tilted grid ▶ animated', '#120C3D', [
     blob({ name: 'Glow', x: 150, y: 100, w: 500, color: C.indigo, opacity: 0.9, blur: 150 }),
-    tiltedGrid({ cx: DW / 2, cy: DH / 2, cols: 6, rows: 5, colW: 250, gap: 18, list: ['chat-focus-desktop', 'assistants-desktop', 'chat-chat-name-dropdown', 'assistants-search', 'chat-typing', 'assistants-active', 'chat-folder-name-dropdown', 'assistants-loading-state', 'chat-error', 'assistants-all-empty-state', 'assistants-private-empty-state', 'chat-enabled'], angle: -24, drift: 90, kf, radius: 8, shadow: SH.soft }),
+    tiltedGrid({ cx: DW / 2, cy: DH / 2, cols: 6, rows: 5, colW: 250, gap: 18, list: ['chat-focus-desktop', 'assistants-desktop', 'assistants-search', 'chat-typing', 'assistants-active', 'assistants-loading-state', 'chat-error', 'assistants-all-empty-state', 'assistants-private-empty-state', 'chat-enabled'], angle: -24, drift: 90, kf, radius: 8, shadow: SH.soft }),
   ]),
 });
 
