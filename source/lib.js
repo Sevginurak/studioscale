@@ -186,6 +186,7 @@ function wave(W, y, h, color, kind = 'wave') {
   else if (kind === 'curve') d = `M0 ${h}C${W * 0.25} ${0} ${W * 0.75} ${0} ${W} ${h}Z`;
   else if (kind === 'diagonal') d = `M0 ${h}L${W} 0L${W} ${h}Z`;
   else if (kind === 'diagonal-r') d = `M0 0L${W} ${h}L0 ${h}Z`;
+  else if (kind === 'sweep') d = `M0 ${h * 0.15}C${W * 0.42} ${h * 0.05} ${W * 0.74} ${h * 0.45} ${W} ${h}L0 ${h}Z`; // one calm sweep, high on the left
   else if (kind === 'diagonal-r-top') d = `M0 0L${W} 0L${W} ${h}Z`; // the previous section's colour, entering from the top
   else if (kind === 'arch') d = `M0 ${h}L0 ${h * 0.6}Q0 0 ${h * 0.6} 0L${W - h * 0.6} 0Q${W} 0 ${W} ${h * 0.6}L${W} ${h}Z`;
   return pathN({ name: 'Transition', x: 0, y, w: W, h, d, fill: color });

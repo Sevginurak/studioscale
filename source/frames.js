@@ -228,7 +228,7 @@ B.push({
         ...chatTurn(t, sc, ox, oy),
       ]),
       pointer('Cursor', cur[0], cur[1]),
-      wave(W, h - 120, 120, C.canvas, 'wave'),
+      wave(W, h - 120, 120, C.canvas, 'sweep'),
     ]);
   },
 });
