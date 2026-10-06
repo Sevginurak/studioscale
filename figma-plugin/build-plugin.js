@@ -23,7 +23,7 @@ function dotTile(color, gap, size) {
   }
   return png(S, S, buf).toString('base64');
 }
-const tiles = {};
+const tiles = {}, images = {};
 function walk(n) {
   if (n.fill && n.fill.type === 'dots') { const k = `${n.fill.color}|${n.fill.gap}|${n.fill.size}`; if (!tiles[k]) tiles[k] = dotTile(n.fill.color, n.fill.gap, n.fill.size); n.fill.tile = k; }
   if (n.type === 'path') { // SVG import wants plain hex colours + separate opacity
@@ -31,14 +31,14 @@ function walk(n) {
     if (n.fill) { const [c, a] = fix(n.fill); n.fill = c; if (a < 1) n.opacity = (n.opacity || 1) * a; }
     if (n.stroke) { const [c, a] = fix(n.stroke.color); n.stroke.color = c; if (a < 1) n.opacity = (n.opacity || 1) * a; }
   }
-  if (n.type === 'image' && !n.data) n.data = fs.readFileSync(path.join(dir, '..', 'source', 'assets', n.src)).toString('base64');
+  if (n.type === 'image' && !images[n.src]) images[n.src] = fs.readFileSync(path.join(dir, '..', 'source', 'assets', n.src)).toString('base64');
   for (const c of n.children || []) walk(c);
 }
 for (const F of scene.frames) for (const k of F.keyframes) walk(k);
 const logos = {}; for (const v of ['color', 'white', 'mono-white']) logos[v] = fs.readFileSync(path.join(dir, '..', 'source', 'assets', `logo-${v}.svg`), 'utf8');
 
 const runtime = fs.readFileSync(path.join(dir, 'src', 'runtime.js'), 'utf8');
-fs.writeFileSync(path.join(dir, 'code.js'), `const SCENE = ${JSON.stringify(scene)};\nconst ASSETS = ${JSON.stringify({ tiles, logos })};\n${runtime}`);
+fs.writeFileSync(path.join(dir, 'code.js'), `const SCENE = ${JSON.stringify(scene)};\nconst ASSETS = ${JSON.stringify({ tiles, logos, images })};\n${runtime}`);
 fs.copyFileSync(path.join(dir, 'src', 'ui.html'), path.join(dir, 'ui.html'));
 fs.writeFileSync(path.join(dir, 'manifest.json'), JSON.stringify({
   name: 'EdSpace Presentation Builder', id: 'edspace-presentation-builder', api: '1.0.0',

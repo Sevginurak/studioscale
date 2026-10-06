@@ -127,7 +127,7 @@ async function make(n, parent, ctx) {
     }
     case 'image': {
       node = figma.createRectangle(); node.resize(n.w, n.h); radius(node, n.radius);
-      node.fills = [{ type: 'IMAGE', scaleMode: 'FILL', imageHash: figma.createImage(figma.base64Decode(n.data)).hash }];
+      node.fills = [{ type: 'IMAGE', scaleMode: 'FILL', imageHash: (imageCache['img:' + n.src] = imageCache['img:' + n.src] || figma.createImage(figma.base64Decode(ASSETS.images[n.src])).hash) }];
       parent.appendChild(node); common(node, n); place(node, n, n.w, n.h);
       return node;
     }
