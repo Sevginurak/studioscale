@@ -63,6 +63,16 @@ async function main() {
     await p.waitForTimeout(400);
     await p.screenshot({ path: path.join(dir, F.file + '.png'), clip: { x: 0, y: 0, width: tree.w, height: tree.h } });
     console.error('png', F.page, F.file);
+    // Lottie posters for the Figma plugin (it places a still; the JSON files ship in source/assets)
+    const lot = await p.$$('[data-lottie]');
+    if (lot.length) {
+      const entry = scene.frames[scene.frames.length - 1];
+      for (const el of lot) {
+        const k = await el.getAttribute('data-k');
+        const b64 = (await el.screenshot({ type: 'png' })).toString('base64');
+        for (const kt of entry.keyframes) (function w(n) { if (n._k === k) n.poster64 = b64; (n.children || []).forEach(w); })(kt);
+      }
+    }
     if (motion) {
       // keyframe stills
       const kdir = path.join(OUT, 'motion', F.file); fs.rmSync(kdir, { recursive: true, force: true }); fs.mkdirSync(kdir, { recursive: true });
@@ -104,6 +114,7 @@ async function main() {
 function bakeZoom(tree) {
   const t = JSON.parse(JSON.stringify(tree));
   const scaleNode = (n, z) => {
+    if (n.type === 'path' && !n.vw) { n.vw = n.w; n.vh = n.h; }
     for (const k of ['x', 'y', 'w', 'h']) if (typeof n[k] === 'number') n[k] *= z;
     if (n.type === 'text') { n.size *= z; n.lh *= z; }
     if (n.type === 'screen') n.scale *= z;
@@ -143,9 +154,10 @@ const PLAYER = `
     }
   }
   function lerp(a, b, t) { const o = {}; for (const k in a) o[k] = a[k] + (b[k] - a[k]) * t; return o; }
-  window.__seekKF = i => apply(tr => tr.values[i]);
+  window.__seekKF = i => { apply(tr => tr.values[i]); if (window.__lottieSeek) window.__lottieSeek(segs.slice(0, i).reduce((a, s) => a + s.hold + s.dur, 0)); };
   window.__seek = (t) => {
     t = t % total; let acc = 0;
+    if (window.__lottieSeek) window.__lottieSeek(t);
     for (let i = 0; i < segs.length; i++) {
       const s = segs[i], j = (i + 1) % segs.length;
       if (t < acc + s.hold) return apply(tr => tr.values[i]);

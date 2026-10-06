@@ -13,6 +13,7 @@ A presentation built around the 26 screens in `Untitled.fig`. The screens are ne
 | `screens/` | SVG renders of the 26 original frames, made from the file's own geometry and glyph outlines. |
 | `source/` | The presentation itself: `frames.js` (every section and shot), `lib.js` (devices, shapes, text), `html.js` + `build.js` (PNG and video export). |
 | `tools/fig-render/` | The `.fig` renderer used to turn the original frames into `screens/`. |
+| `source/assets/walkthrough/` | The product's own onboarding Lottie animations, played frame-accurately in section 09 (via `source/vendor/lottie.min.js`, MIT). |
 
 ## Build the pages in Figma
 
@@ -27,6 +28,7 @@ What the plugin does:
 - Devices, waves, brackets, glows and dot patterns are vector layers. All copy is live Degular text.
 - `03 Motion` holds 2 keyframe frames per animation, with identical layer names. They are wired *After delay → Smart Animate* and loop back to the first keyframe. Open `03 Motion` and **Present** any flow to watch it.
 - Running the plugin again replaces only the frames it created.
+- The walkthrough animations (section 09) are placed as stills in Figma. To animate them there, drop the matching GIF or Lottie JSON onto each card.
 
 ### Layer budget
 

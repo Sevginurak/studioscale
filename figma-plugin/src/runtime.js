@@ -125,10 +125,17 @@ async function make(n, parent, ctx) {
       parent.appendChild(node); common(node, n); place(node, n, n.w, n.h);
       return node;
     }
+    case 'lottie': {
+      // still from the Lottie (the animation JSON is in source/assets/walkthrough)
+      node = figma.createRectangle(); node.resize(n.w, n.h); radius(node, n.radius);
+      node.fills = n.poster64 ? [{ type: 'IMAGE', scaleMode: 'FILL', imageHash: figma.createImage(figma.base64Decode(n.poster64)).hash }] : paints(n.fill);
+      parent.appendChild(node); common(node, n); place(node, n, n.w, n.h);
+      return node;
+    }
     case 'path': {
       const s = n.stroke;
       const attrs = `fill="${n.fill || 'none'}"` + (s ? ` stroke="${s.color}" stroke-width="${s.width}" stroke-linecap="${s.cap || 'butt'}" stroke-linejoin="round"${s.dash ? ` stroke-dasharray="${s.dash.join(' ')}"` : ''}` : '');
-      node = figma.createNodeFromSvg(`<svg xmlns="http://www.w3.org/2000/svg" width="${n.w}" height="${n.h}" viewBox="0 0 ${n.w} ${n.h}"><path d="${n.d}" ${attrs}/></svg>`);
+      node = figma.createNodeFromSvg(`<svg xmlns="http://www.w3.org/2000/svg" width="${n.w}" height="${n.h}" viewBox="0 0 ${n.vw || n.w} ${n.vh || n.h}" preserveAspectRatio="none"><path d="${n.d}" ${attrs}/></svg>`);
       node.fills = []; node.clipsContent = false;
       parent.appendChild(node); common(node, n); place(node, n, n.w, n.h);
       return node;

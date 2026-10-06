@@ -58,7 +58,7 @@ function node(n, ctx) {
     case 'path': {
       const s = n.stroke;
       const attrs = `fill="${n.fill ? n.fill : 'none'}"` + (s ? ` stroke="${s.color}" stroke-width="${s.width}" stroke-linecap="${s.cap || 'butt'}" stroke-linejoin="round"${s.dash ? ` stroke-dasharray="${s.dash.join(' ')}"` : ''}` : '');
-      return `<svg${id} style="${base(n, 'overflow:visible;')}" width="${n.w}" height="${n.h}"><path d="${n.d}" ${attrs}/></svg>`;
+      return `<svg${id} style="${base(n, 'overflow:visible;')}" width="${n.w}" height="${n.h}"${n.vw ? ` viewBox="0 0 ${n.vw} ${n.vh}" preserveAspectRatio="none"` : ''}><path d="${n.d}" ${attrs}/></svg>`;
     }
     case 'text': {
       const fam = `'Degular Preview'`;
@@ -80,6 +80,11 @@ function node(n, ctx) {
       }
       return `<div${id} style="${st}">${img}${ring}</div>`;
     }
+    case 'lottie': {
+      // a Lottie animation (vector, from the product's own JSON), seeked frame-by-frame by the player
+      let st = base(n, `overflow:hidden;border-radius:${radiusCSS(n.radius || 0)};background:${n.fill || 'transparent'};`);
+      return `<div${id} data-lottie="${esc(n.src)}" data-poster="${n.poster || 0}" style="${st}"></div>`;
+    }
     case 'logo': {
       return `<img${id} src="${ctx.logoUrl(n.variant)}" style="${base(n)}">`;
     }
@@ -94,6 +99,26 @@ function node(n, ctx) {
   return '';
 }
 
+// inline the Lottie player + the animations a frame uses (file:// pages can't fetch JSON)
+function lottieScripts(frame) {
+  const srcs = new Set(); (function w(n) { if (n.type === 'lottie') srcs.add(n.src); (n.children || []).forEach(w); })(frame);
+  if (!srcs.size) return '';
+  const fs = require('fs'), path = require('path');
+  const lib = fs.readFileSync(path.join(__dirname, 'vendor', 'lottie.min.js'), 'utf8');
+  const data = {}; for (const s of srcs) data[s] = JSON.parse(fs.readFileSync(path.join(__dirname, 'assets', s), 'utf8'));
+  return `<script>${lib}</script><script>window.__LOTTIE_DATA=${JSON.stringify(data)};
+(function(){
+  const anims = [...document.querySelectorAll('[data-lottie]')].map(el => {
+    const d = window.__LOTTIE_DATA[el.dataset.lottie];
+    const a = lottie.loadAnimation({ container: el, renderer: 'svg', loop: false, autoplay: false, animationData: d, rendererSettings: { preserveAspectRatio: 'xMidYMid slice' } });
+    return { a, fr: d.fr, n: d.op - d.ip, poster: +el.dataset.poster };
+  });
+  const at = (x, ms) => x.a.goToAndStop(((ms / 1000) * x.fr) % x.n, true);
+  window.__lottieSeek = t => anims.forEach(x => at(x, t));
+  anims.forEach(x => at(x, x.poster));
+})();</script>`;
+}
+
 function page(frame, ctx) {
   const fonts = [['regular', 400], ['medium', 500], ['semibold', 600]].map(([f, w]) => `@font-face{font-family:'Degular Preview';src:url('${ctx.fontUrl(f)}');font-weight:${w}}`).join('');
   return `<!doctype html><html><head><meta charset="utf-8"><style>${fonts}
@@ -101,7 +126,7 @@ html,body{margin:0;padding:0;background:#000}
 #frame{position:relative;overflow:hidden;width:${frame.w}px;height:${frame.h}px;background:${fillCSS(frame.fill || C.white)}}
 #frame *{box-sizing:border-box}
 </style></head><body><div id="frame" data-name="${esc(frame.name)}">${frame.children.map(c => node(c, ctx)).join('')}</div>
-<script>window.__MOTION__=${JSON.stringify(ctx.motion || null)};</script>
+<script>window.__MOTION__=${JSON.stringify(ctx.motion || null)};</script>${lottieScripts(frame)}
 </body></html>`;
 }
 
