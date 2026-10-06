@@ -80,6 +80,9 @@ function node(n, ctx) {
       }
       return `<div${id} style="${st}">${img}${ring}</div>`;
     }
+    case 'image': {
+      return `<img${id} src="file://${require('path').join(__dirname, 'assets', n.src)}" style="${base(n, `object-fit:cover;border-radius:${radiusCSS(n.radius || 0)};`)}">`;
+    }
     case 'lottie': {
       // a Lottie animation (vector, from the product's own JSON), seeked frame-by-frame by the player
       let st = base(n, `overflow:hidden;border-radius:${radiusCSS(n.radius || 0)};background:${n.fill || 'transparent'};`);

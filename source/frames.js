@@ -539,69 +539,37 @@ B.push({
   },
 });
 
-// 12 · Empty states (cascading windows) ▶ animated ------------------------------------
+// 12 · Empty states (illustrations) ▶ animated ----------------------------------------
 B.push({
   id: 'b12', page: 'behance', file: '12-empty-states', title: '12 · Empty states ▶ animated',
   keyframes: [{ name: 'Rest', hold: 900, duration: 1600 }, { name: 'Float', hold: 900, duration: 1600 }],
   build: (kf) => {
-    const g = 32, cw = (W - 2 * M - 2 * g) / 3, ch = 400, top = 400;
-    const items = [
-      ['assistants-all-empty-state', 'No assistant yet.', 'Create your first assistant to start guiding students with custom learning experience.'],
-      ['assistants-private-empty-state', 'No private assistant yet.', 'Assistants you haven’t shared yet will appear here.'],
-      ['assistants-published-empty-state', 'No published assistants right now.', 'Share an assistant to make it available for students.'],
-      ['assistants-draft-empty-state', 'Draft is empty.', 'Assistants you haven’t used or shared will appear here when you create them.'],
-      ['assistants-search-no-found', 'No assistants found.', 'No assistants match “Turkish”. Try a different search term.'],
-      ['assistants-search-numbers-no-found', 'Looks like you’ve entered an assistant code.', 'Assistant codes can’t be searched.'],
-    ];
-    const z = 2.3, il = { x: 795, y: 443, w: 110, h: 94 };
-    const cards = items.map(([slug, t, d], i) => {
-      const x = M + (i % 3) * (cw + g), y = top + Math.floor(i / 3) * (ch + g);
-      const ill = screen({ name: 'Illustration', slug, crop: il, scale: z });
-      const lift = kfv(kf, 0, i % 2 ? 10 : -10);
-      return group({ name: 'Empty state ' + (i + 1), x, y, w: cw, h: ch }, [
-        rect({ name: 'Card', x: 0, y: 0, w: cw, h: ch, radius: 28, fill: C.white, shadow: SH.card }),
-        rect({ name: 'Panel', x: 12, y: 12, w: cw - 24, h: 240, radius: 20, fill: C.canvas }),
-        Object.assign(ill, { x: (cw - ill.w) / 2, y: 12 + (240 - ill.h) / 2 + lift }),
-        text({ name: 'Title', text: t, size: 22, weight: 600, x: 28, y: 274, lh: 28 }),
-        text({ name: 'Description', text: wrap(d, 17, 400, cw - 56), size: 17, lh: 25, color: BODY, x: 28, y: 310 }),
+    // the product's empty-state illustrations, shown on their own (no screens)
+    const ill = ['books', 'books-unlock', 'books-idea', 'books-download', 'books-search', 'book-check', 'share', 'folder-docs', 'folder-empty', 'chat-eye'];
+    const cols = 5, g = 24, cw = (W - 2 * M - (cols - 1) * g) / cols, top = 380;
+    const cards = ill.map((n, i) => {
+      const x = M + (i % cols) * (cw + g), y = top + Math.floor(i / cols) * (cw + g);
+      const lift = kfv(kf, 0, i % 2 ? 8 : -8);
+      return group({ name: 'Empty state · ' + n, x, y, w: cw, h: cw }, [
+        rect({ name: 'Card', x: 0, y: 0, w: cw, h: cw, radius: 28, fill: C.white, shadow: SH.card }),
+        { type: 'image', name: 'Illustration', src: 'empty/' + n + '.png', x: 14, y: 14 + lift, w: cw - 28, h: cw - 28 },
       ]);
     });
-    const h = top + 2 * ch + g + 200;
+    const h = Math.round(top + 2 * cw + g + 180);
     return frame('12 · Empty states ▶ animated', h, { type: 'linear', angle: 180, stops: [[0, '#EFEEFB'], [1, '#F7F6FD']] }, [
       blob({ name: 'Glow', x: 900, y: 200, w: 900, color: C.white, opacity: 0.9, blur: 240 }),
       heading({ x: M, y: 140, label: 'Empty states', title: 'Illustrations for every empty state' }),
       ...cards,
-      wave(W, h - 100, 100, '#1E1760', 'diagonal'),
+      wave(W, h - 100, 100, C.canvas, 'diagonal'),
     ]);
   },
 });
 
-// 13 · UI close-up (container bleeds off the left edge) -----------------------------
 B.push({
-  id: 'b13', page: 'behance', file: '13-close-up', title: '13 · UI close-up',
-  build: () => {
-    const h = 1160, z = 1.5, cw = 750 * z, ch = 440 * z, cx = -100;
-    return frame('13 · UI close-up', h, { type: 'linear', angle: 180, stops: [[0, '#1E1760'], [1, '#2A2088']] }, [
-      blob({ name: 'Glow', x: 700, y: 400, w: 900, color: C.indigo, opacity: 0.8, blur: 260 }),
-      blob({ name: 'Glow peach', x: 1500, y: -100, w: 500, color: C.peach, opacity: 0.18, blur: 200 }),
-      rect({ name: 'Container', x: cx, y: 190, w: 80 - cx + cw + 30, h: ch + 60, radius: 44, fill: 'rgba(255,255,255,0.12)', stroke: { color: 'rgba(255,255,255,0.18)', width: 1 } }),
-      screen({ name: 'Zoomed UI', slug: 'chat-chat-name-dropdown', crop: K.conversation.crop, x: 80, y: 220, scale: z, radius: 30, shadow: SH.deep }),
-      group({ name: 'Copy', x: 1300, y: 390, w: 416, h: 420 }, [
-        text({ name: 'Label', text: 'CLOSE-UP', size: 16, weight: 500, ls: 0.18, color: C.lavender, x: 0, y: 0 }),
-        text({ name: 'Title', text: 'Conversation', size: 68, weight: 500, ls: -0.03, color: C.white, x: -2, y: 40, lh: 74 }),
-        text({ name: 'Caption', text: wrap('Replies, attached files and message actions in one thread.', 24, 400, 400), size: 24, lh: 36, color: 'rgba(255,255,255,0.7)', x: 0, y: 146 }),
-      ]),
-      wave(W, h - 100, 100, C.canvas, 'wave'),
-    ]);
-  },
-});
-
-// 15 · Responsive ------------------------------------------------------------------
-B.push({
-  id: 'b14', page: 'behance', file: '14-responsive', title: '14 · Responsive',
+  id: 'b14', page: 'behance', file: '13-responsive', title: '13 · Responsive',
   build: () => {
     const h = 1240;
-    return frame('14 · Responsive', h, { type: 'linear', angle: 180, stops: [[0, C.canvas], [1, C.white]] }, [
+    return frame('13 · Responsive', h, { type: 'linear', angle: 180, stops: [[0, C.canvas], [1, C.white]] }, [
       blob({ name: 'Glow', x: 900, y: 400, w: 900, color: C.lavender, opacity: 0.3, blur: 260 }),
       blob({ name: 'Glow peach', x: 1400, y: 100, w: 600, color: C.peach, opacity: 0.3, blur: 220 }),
       rect({ name: 'Interface shape', x: 640, y: 250, w: 1300, h: 820, radius: 80, fill: 'rgba(255,255,255,0.75)' }),
@@ -614,14 +582,14 @@ B.push({
   },
 });
 
-// 16 · Closing ▶ animated ------------------------------------------------------------
+// 14 · Closing ▶ animated ------------------------------------------------------------
 B.push({
-  id: 'b15', page: 'behance', file: '15-closing', title: '15 · Closing ▶ animated',
+  id: 'b15', page: 'behance', file: '14-closing', title: '14 · Closing ▶ animated',
   keyframes: [{ name: 'Rest', hold: 300, duration: 3400 }, { name: 'Drift', hold: 300, duration: 3400 }],
   build: (kf) => {
     const h = 1100;
     const list = ['assistants-desktop', 'chat-focus-desktop', 'assistants-search', 'assistants-active', 'chat-typing', 'assistants-loading-state', 'chat-error', 'assistants-all-empty-state'];
-    return frame('15 · Closing ▶ animated', h, '#4338CA', [
+    return frame('14 · Closing ▶ animated', h, '#4338CA', [
       blob({ name: 'Glow', x: -200, y: 300, w: 900, color: C.lavender, opacity: 0.45, blur: 260 }),
       group({ name: 'Grid area', x: W / 2 + 40, y: 0, w: W / 2 - 40, h, clip: true, radius: [56, 0, 0, 56], fill: '#2B219B' }, [
         tiltedGrid({ cx: W / 4 + 40, cy: h / 2, cols: 4, rows: 5, colW: 420, gap: 28, list, angle: -24, drift: 160, kf, radius: 12 }),

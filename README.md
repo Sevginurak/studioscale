@@ -6,7 +6,7 @@ A presentation built around the 26 screens in `Untitled.fig`. The screens are ne
 
 | Path | What it is |
 | --- | --- |
-| `export/behance/` | 15 sections, each 1836 px wide, exported at 2x (3672 px), one file per section in publishing order. Animated sections also come as `.mp4` (1836 px) and `.gif` (under 10 MB). |
+| `export/behance/` | 14 sections, each 1836 px wide, exported at 2x (3672 px), one file per section in publishing order. Animated sections also come as `.mp4` (1836 px) and `.gif` (under 10 MB). |
 | `export/dribbble/` | 8 standalone shots at 800 × 600, exported at 2x (1600 × 1200). Animated shots also come as `.mp4` and `.gif`. |
 | `export/motion/` | Keyframe stills for every animated section and shot. |
 | `figma-plugin/` | **EdSpace Presentation Builder**, a plugin that creates the `01 Behance`, `02 Dribbble` and `03 Motion` pages in your Figma file. |

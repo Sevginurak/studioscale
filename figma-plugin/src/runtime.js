@@ -125,6 +125,12 @@ async function make(n, parent, ctx) {
       parent.appendChild(node); common(node, n); place(node, n, n.w, n.h);
       return node;
     }
+    case 'image': {
+      node = figma.createRectangle(); node.resize(n.w, n.h); radius(node, n.radius);
+      node.fills = [{ type: 'IMAGE', scaleMode: 'FILL', imageHash: figma.createImage(figma.base64Decode(n.data)).hash }];
+      parent.appendChild(node); common(node, n); place(node, n, n.w, n.h);
+      return node;
+    }
     case 'lottie': {
       // still from the Lottie (the animation JSON is in source/assets/walkthrough)
       node = figma.createRectangle(); node.resize(n.w, n.h); radius(node, n.radius);

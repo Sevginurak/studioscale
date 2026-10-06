@@ -31,6 +31,7 @@ function walk(n) {
     if (n.fill) { const [c, a] = fix(n.fill); n.fill = c; if (a < 1) n.opacity = (n.opacity || 1) * a; }
     if (n.stroke) { const [c, a] = fix(n.stroke.color); n.stroke.color = c; if (a < 1) n.opacity = (n.opacity || 1) * a; }
   }
+  if (n.type === 'image' && !n.data) n.data = fs.readFileSync(path.join(dir, '..', 'source', 'assets', n.src)).toString('base64');
   for (const c of n.children || []) walk(c);
 }
 for (const F of scene.frames) for (const k of F.keyframes) walk(k);
