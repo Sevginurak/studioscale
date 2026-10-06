@@ -367,7 +367,7 @@ function pairSwatch(o) {
 B.push({
   id: 'b05', page: 'behance', file: '05-colors', title: '05 · Colors',
   build: () => {
-    const h = 1820, inner = W - 2 * M, g = 24;
+    const h = 1990, inner = W - 2 * M, g = 24;
     const label = (t, x, y) => text({ name: 'Group / ' + t, text: t.toUpperCase(), size: 14, weight: 500, ls: 0.16, color: 'rgba(45,40,34,0.55)', x, y });
     const row = (items, y, hh, x0 = M, width = inner) => { const w = (width - g * (items.length - 1)) / items.length; return items.map((it, i) => swatch({ ...it, x: x0 + i * (w + g), y, w, h: hh })); };
     const half = (inner - 40) / 2;
@@ -376,15 +376,15 @@ B.push({
       blob({ name: 'Glow', x: 1200, y: -200, w: 800, color: C.white, opacity: 0.7, blur: 200 }),
       heading({ x: M, y: 150, label: 'Colors', title: 'Indigo on warm neutrals', chipFill: 'rgba(67,56,202,0.10)' }),
       ...row([{ color: C.indigo, name: 'Indigo', role: 'Primary' }, { color: C.peach, name: 'Peach', role: 'Secondary' }, { color: C.ink, name: 'Ink', role: 'Text' }], 340, 380),
-      label('Brand tints', M, 770),
-      ...row([{ color: C.lavender, name: 'Lavender' }, { color: C.mint, name: 'Mint' }, { color: C.peachLight, name: 'Apricot' }, { color: C.sky, name: 'Sky' }, { color: C.orchid, name: 'Orchid' }, { color: C.blueLight, name: 'Mist' }], 806, 250),
-      label('Surfaces', M, 1110),
-      label('Dark & neutrals', M + half + 40, 1110),
-      ...row([{ color: C.canvas, name: 'Canvas' }, { color: C.muted, name: 'Stone' }, { color: C.white, name: 'White' }, { color: C.border, name: 'Border' }], 1146, 230, M, half),
-      ...row([{ color: C.logoInk, name: 'Night' }, { color: C.black, name: 'Black' }, { color: C.olive, name: 'Olive' }, { color: C.gray, name: 'Gray' }], 1146, 230, M + half + 40, half),
-      label('Status', M, 1440),
+      label('Brand tints', M, 812),
+      ...row([{ color: C.lavender, name: 'Lavender' }, { color: C.mint, name: 'Mint' }, { color: C.peachLight, name: 'Apricot' }, { color: C.sky, name: 'Sky' }, { color: C.orchid, name: 'Orchid' }, { color: C.blueLight, name: 'Mist' }], 850, 250),
+      label('Surfaces', M, 1192),
+      label('Dark & neutrals', M + half + 40, 1192),
+      ...row([{ color: C.canvas, name: 'Canvas' }, { color: C.muted, name: 'Stone' }, { color: C.white, name: 'White' }, { color: C.border, name: 'Border' }], 1230, 230, M, half),
+      ...row([{ color: C.logoInk, name: 'Night' }, { color: C.black, name: 'Black' }, { color: C.olive, name: 'Olive' }, { color: C.gray, name: 'Gray' }], 1230, 230, M + half + 40, half),
+      label('Status', M, 1552),
       ...[['Published', C.successBg, C.success], ['Draft', C.warnBg, C.warn], ['Private', C.infoBg, C.info], ['Error', C.errorBg, C.error]].map(([n, bg, fg], i) => {
-        const w = (inner - g * 3) / 4; return pairSwatch({ x: M + i * (w + g), y: 1476, w, h: 220, bg, fg, name: n, sample: n });
+        const w = (inner - g * 3) / 4; return pairSwatch({ x: M + i * (w + g), y: 1590, w, h: 220, bg, fg, name: n, sample: n });
       }),
       wave(W, h - 100, 100, '#EFEEFB', 'arch'),
     ]);
@@ -424,17 +424,22 @@ B.push({
 
 // 07 · UI Design — Desktop -----------------------------------------------------------
 B.push({
-  id: 'b07', page: 'behance', file: '07-ui-design-desktop', title: '07 · UI Design — Desktop',
-  build: () => {
+  id: 'b07', page: 'behance', file: '07-ui-design-desktop', title: '07 · UI Design — Desktop ▶ animated',
+  keyframes: [{ name: 'Loading', hold: 1400, duration: 900 }, { name: 'Loaded', hold: 2000, duration: 700 }],
+  build: (kf = 0) => {
     const g = 36, colW = (W - 2 * M - g) / 2;
     const list = ['chat-focus-desktop', 'assistants-desktop', 'chat-typing', 'assistants-search', 'chat-error', 'assistants-loading-state'];
     const ys = [1300, 1380];
     const items = list.map((slug, i) => {
-      const c = i % 2; const b = browser({ name: 'Screen ' + (i + 1), slug, x: M + c * (colW + g), y: ys[c], w: colW, shadow: SH.soft });
-      ys[c] += b.h + g; return b;
-    });
+      const c = i % 2; const x = M + c * (colW + g), y = ys[c];
+      // the loading tile plays skeleton → content, like the product does
+      const loading = slug === 'assistants-loading-state';
+      const b = browser({ name: 'Screen ' + (i + 1), slug: loading ? 'assistants-desktop' : slug, x, y, w: colW, shadow: SH.soft });
+      ys[c] += b.h + g;
+      return loading ? [b, browser({ name: 'Screen ' + (i + 1) + ' · Skeleton', slug, x, y, w: colW, shadow: false, opacity: kfv(kf, 1, 0) })] : [b];
+    }).flat();
     const h = Math.round(Math.max(...ys) + 140);
-    return frame('07 · UI Design — Desktop', h, { type: 'linear', angle: 180, stops: [[0, C.canvas], [1, '#F7F6F4']] }, [
+    return frame('07 · UI Design — Desktop ▶ animated', h, { type: 'linear', angle: 180, stops: [[0, C.canvas], [1, '#F7F6F4']] }, [
       dots({ x: 0, y: 0, w: W, h: 1250, color: 'rgba(45,40,34,0.10)', gap: 24 }),
       heading({ x: M, y: 140, label: 'UI Design', title: 'Desktop' }),
       browser({ name: 'Hero screen', slug: 'assistants-desktop-large', x: M, y: 330, w: W - 2 * M, shadow: SH.float }),
@@ -451,14 +456,15 @@ B.push({
     const tw = 500, tg = 80, tx = (W - 2 * tw - tg) / 2;
     const tabs = ['assistants-tablet', 'chat-focus-tablet'].map((slug, i) => screen({ name: 'Tablet ' + (i + 1), slug, x: tx + i * (tw + tg), y: 330 + i * 80, w: tw, radius: 26, shadow: SH.float }));
     const pw = 330, pg = 150, px0 = (W - (3 * pw + 2 * pg)) / 2;
-    const phones = MOBILE.map((slug, i) => iphone({ name: 'iPhone ' + (i + 1), slug, x: px0 + i * (pw + pg), y: 1250 + (i === 1 ? -60 : 0), w: pw }));
-    const h = 2060;
+    const phones = MOBILE.map((slug, i) => iphone({ name: 'iPhone ' + (i + 1), slug, x: px0 + i * (pw + pg), y: 1290 + (i === 1 ? -40 : 0), w: pw }));
+    // white panel with breathing room above and below the phones, then space before the section ends
+    const pTop = 1170, pBottom = Math.round(Math.max(...phones.map(p => p.y + p.h)) + 90), h = pBottom + 170;
     return frame('08 · UI Design — Tablet & Mobile', h, { type: 'linear', angle: 180, stops: [[0, '#E9E6FB'], [1, '#F5F3FE']] }, [
       blob({ name: 'Glow', x: 600, y: 800, w: 900, color: C.white, opacity: 0.9, blur: 260 }),
       blob({ name: 'Glow lilac', x: -300, y: 1300, w: 800, color: C.lavender, opacity: 0.35, blur: 260 }),
       heading({ x: M, y: 140, label: 'UI Design', title: 'Tablet & mobile', chipFill: 'rgba(67,56,202,0.08)' }),
       ...tabs,
-      rect({ name: 'Interface shape', x: M - 40, y: 1190, w: W - 2 * M + 80, h: 760, radius: 72, fill: 'rgba(255,255,255,0.55)' }),
+      rect({ name: 'Interface shape', x: M - 40, y: pTop, w: W - 2 * M + 80, h: pBottom - pTop, radius: 72, fill: 'rgba(255,255,255,0.55)' }),
       ...phones,
       wave(W, h - 100, 100, C.white, 'diagonal'),
     ]);
