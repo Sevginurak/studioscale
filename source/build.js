@@ -16,6 +16,8 @@ const noVideo = args.includes('--no-video');
 const scale = args.includes('--scale') ? +args[args.indexOf('--scale') + 1] : 2;
 const TMP = process.env.TMPDIR_BUILD || path.join(ROOT, '.build');
 fs.mkdirSync(TMP, { recursive: true });
+const POSTER_FILE = path.join(ROOT, 'figma-plugin', 'posters.json');
+const POSTERS = fs.existsSync(POSTER_FILE) ? JSON.parse(fs.readFileSync(POSTER_FILE)) : {};
 
 const ctx = {
   S: lib.S,
@@ -66,11 +68,10 @@ async function main() {
     // Lottie posters for the Figma plugin (it places a still; the JSON files ship in source/assets)
     const lot = await p.$$('[data-lottie]');
     if (lot.length) {
-      const entry = scene.frames[scene.frames.length - 1];
       for (const el of lot) {
         const k = await el.getAttribute('data-k');
         const b64 = (await el.screenshot({ type: 'png' })).toString('base64');
-        for (const kt of entry.keyframes) (function w(n) { if (n._k === k) n.poster64 = b64; (n.children || []).forEach(w); })(kt);
+        POSTERS[F.id + k] = b64;
       }
     }
     if (motion) {
@@ -111,6 +112,9 @@ async function main() {
     await p.close();
   }
   await browser.close();
+  // posters persist across partial builds (--only)
+  fs.writeFileSync(POSTER_FILE, JSON.stringify(POSTERS));
+  for (const F of scene.frames) for (const kt of F.keyframes) (function w(n) { if (n.type === 'lottie' && POSTERS[F.id + n._k]) n.poster64 = POSTERS[F.id + n._k]; (n.children || []).forEach(w); })(kt);
   fs.writeFileSync(path.join(ROOT, 'figma-plugin', 'scene.json'), JSON.stringify(scene));
 }
 

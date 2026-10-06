@@ -198,16 +198,18 @@ B.push({
     { name: 'Back to new chat', hold: 500, duration: 900 },
   ],
   build: (kf) => {
-    const h = 1400, vh = 1236, lx = (W - 1180) / 2, ly = 330, NT = TYPE_STEPS.length;
+    const h = 1400, lx = (W - 1180) / 2, ly = 330, NT = TYPE_STEPS.length;
     const SEND = NT + 1, T0 = NT + 2, BACK = T0 + TURN.length;
     const t = kf >= T0 && kf < BACK ? kf - T0 : kf === BACK ? TURN.length - 1 : -1;
     const lidW = 1180 * 0.86, sc = (lidW - lidW * 0.024 * 2) / 1440, ox = lx + (1180 - lidW) / 2 + lidW * 0.024, oy = ly + lidW * 0.03;
     const P = (x, y) => [ox + x * sc, oy + y * sc];
     const typeStep = kf >= 1 && kf <= SEND ? Math.min(kf, NT) : 0;
+    // zoom without clipping: the laptop's bottom edge always sits just above the closing wave
+    const lapBottom = ly + 741, rest = h - 150;
+    const camB = (z, fx) => ({ zoom: z, x: W / 2 - fx * z, y: rest - lapBottom * z });
     const c = kf === 0 || kf === BACK ? cam(1, 0, 0, 0, 0)
-      : kf <= SEND ? cam(1.75, ...P(850, 630), W / 2, 720)
-      : t <= 3 ? cam(1.6, ...P(850, 330), W / 2, 580)
-      : cam(1.55, ...P(850, 420), W / 2, 600);
+      : kf <= SEND ? camB(1.68, P(850, 0)[0])
+      : camB(1.62, P(850, 0)[0]);
     const toView = ([x, y]) => [c.x + x * c.zoom, c.y + y * c.zoom];
     const cur = toView(kf === 0 ? P(560, 690) : kf < NT ? P(760, 700) : kf <= SEND ? P(1188, 680) : t <= 3 ? P(1130, 600) : t < TURN.length - 1 ? P(1000, 560) : kf === BACK ? P(78, 154) : P(900, 560));
     const wide = c.zoom === 1 ? 1 : 0;
@@ -220,13 +222,10 @@ B.push({
       rect({ name: 'Interface shape', x: 200, y: 470, w: W - 400, h: 690, radius: 64, fill: 'rgba(255,255,255,0.06)', stroke: { color: 'rgba(255,255,255,0.12)', width: 1 }, opacity: wide }),
       logo({ x: (W - 250) / 2, y: 92, w: 250, variant: 'white', opacity: wide }),
       text({ name: 'Tagline', text: 'AI chat and assistants for schools', size: 30, weight: 400, color: 'rgba(255,255,255,0.8)', align: 'center', cx: W / 2, y: 222, lh: 38, opacity: wide }),
-      // the zoomed device stays inside this viewport, clear of the closing wave
-      group({ name: 'Viewport', x: 0, y: 0, w: W, h: vh, clip: true }, [
-        group({ name: 'Camera', x: c.x, y: c.y, w: W, h, zoom: c.zoom }, [
-          lap,
-          ...typing(typeStep, sc, ox, oy),
-          ...chatTurn(t, sc, ox, oy),
-        ]),
+      group({ name: 'Camera', x: c.x, y: c.y, w: W, h, zoom: c.zoom }, [
+        lap,
+        ...typing(typeStep, sc, ox, oy),
+        ...chatTurn(t, sc, ox, oy),
       ]),
       pointer('Cursor', cur[0], cur[1]),
       wave(W, h - 120, 120, C.canvas, 'wave'),
