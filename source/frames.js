@@ -13,11 +13,11 @@ const kfv = (kf, ...vals) => vals[Math.min(kf, vals.length - 1)];
 // title block: label chip + large title (+ optional caption)
 function heading(o) {
   const items = [];
-  const lbl = chip({ text: o.label, x: 0, y: 0, color: o.labelColor, fill: o.chipFill, dot: o.dot });
+  const lbl = chip({ text: o.label, x: 0, y: 0, color: o.labelColor });
   items.push(lbl);
-  const title = text({ name: 'Title', text: o.title, size: o.size || 64, weight: 500, ls: -0.03, lh: Math.round((o.size || 64) * 1.06), color: o.color || C.ink, x: 0, y: 60, align: o.align });
+  const title = text({ name: 'Title', text: o.title, size: o.size || 64, weight: 500, ls: -0.03, lh: Math.round((o.size || 64) * 1.06), color: o.color || C.ink, x: 0, y: 54, align: o.align });
   items.push(title);
-  let h = 60 + title.h;
+  let h = 54 + title.h;
   if (o.caption) {
     const cap = text({ name: 'Caption', text: wrap(o.caption, o.capSize || 22, 400, o.capW || 560), size: o.capSize || 22, lh: Math.round((o.capSize || 22) * 1.5), color: o.capColor || BODY, x: 0, y: h + 22, align: o.align });
     items.push(cap); h = cap.y + cap.h;
@@ -247,7 +247,7 @@ B.push({
       brackets({ name: 'Brackets', x: 70, y: 160, w: 940, h: 830, color: C.indigo, len: 90, t: 7, r: 22 }),
       browser({ name: 'Window · Assistants', slug: 'assistants-desktop', x: 110, y: 205, w: 680 }),
       browser({ name: 'Window · Chat', slug: 'chat-typing', x: 290, y: 500, w: 680, shadow: SH.deep }),
-      heading({ x: fx, y: 230, label: 'About the project', title: 'What would you like\nto do today?', size: 60 }),
+      heading({ x: fx, y: 230, label: '02 - About', title: 'What would you like\nto do today?', size: 60 }),
       text({ name: 'Intro', text: wrap(intro, 22, 400, 620), size: 22, lh: 34, color: BODY, x: fx, y: 470 }),
       group({ name: 'Facts', x: fx, y: 760, w: 640, h: 200 }, facts.flatMap(([k, v], i) => {
         const x = (i % 2) * 330, y = Math.floor(i / 2) * 104;
@@ -276,7 +276,7 @@ B.push({
     const sh = sw * 960 / 1440;
     return frame('03 · Key flow', h, { type: 'linear', angle: 180, stops: [[0, C.indigoTint], [1, '#EFEEFB']] }, [
       dots({ x: 0, y: 0, w: W, h, color: 'rgba(67,56,202,0.16)', gap: 26 }),
-      heading({ x: M, y: 140, label: 'Key flow', title: 'From a question to the right assistant' }),
+      heading({ x: M, y: 140, label: '03 - Key flow', title: 'From a question to the right assistant' }),
       ...steps.flatMap(s => [
         numBadge(s.n, s.x, s.y - 86),
         text({ name: 'Step title ' + s.n, text: s.t, size: 26, weight: 500, x: s.x + 70, y: s.y - 88, lh: 30 }),
@@ -319,7 +319,7 @@ B.push({
     return frame('04 · Typography', h, { type: 'linear', angle: 180, stops: [[0, '#120C3D'], [1, '#1E1760']] }, [
       blob({ name: 'Glow', x: -120, y: 160, w: 900, color: C.indigo, opacity: 0.75, blur: 260 }),
       blob({ name: 'Glow peach', x: 1400, y: 980, w: 520, color: C.peach, opacity: 0.12, blur: 200 }),
-      text({ name: 'Label', text: 'TYPOGRAPHY', size: 16, weight: 500, ls: 0.18, color: C.lavender, x: M, y: 150 }),
+      chip({ text: '04 - Typography', x: M, y: 150, color: C.lavender }),
       text({ name: 'Aa', text: 'Aa', size: 460, weight: 500, ls: -0.04, color: C.white, x: M - 14, y: 190, lh: 470 }),
       text({ name: 'Family', text: 'Degular', size: 64, weight: 500, ls: -0.02, color: C.white, x: M, y: 700, lh: 70 }),
       text({ name: 'Family note', text: 'One family for the whole interface', size: 22, color: 'rgba(255,255,255,0.6)', x: M, y: 784, lh: 30 }),
@@ -374,7 +374,7 @@ B.push({
     return frame('05 · Colors', h, C.muted, [
       dots({ x: 0, y: 0, w: W, h, color: 'rgba(45,40,34,0.10)', gap: 24 }),
       blob({ name: 'Glow', x: 1200, y: -200, w: 800, color: C.white, opacity: 0.7, blur: 200 }),
-      heading({ x: M, y: 150, label: 'Colors', title: 'Indigo on warm neutrals', chipFill: 'rgba(67,56,202,0.10)' }),
+      heading({ x: M, y: 150, label: '05 - Colors', title: 'Indigo on warm neutrals', chipFill: 'rgba(67,56,202,0.10)' }),
       ...row([{ color: C.indigo, name: 'Indigo', role: 'Primary' }, { color: C.peach, name: 'Peach', role: 'Secondary' }, { color: C.ink, name: 'Ink', role: 'Text' }], 340, 380),
       label('Brand tints', M, 812),
       ...row([{ color: C.lavender, name: 'Lavender' }, { color: C.mint, name: 'Mint' }, { color: C.peachLight, name: 'Apricot' }, { color: C.sky, name: 'Sky' }, { color: C.orchid, name: 'Orchid' }, { color: C.blueLight, name: 'Mist' }], 850, 250),
@@ -401,7 +401,7 @@ B.push({
       blob({ name: 'Glow A', x: -200, y: 600, w: 900, color: C.white, opacity: 0.8, blur: 220 }),
       blob({ name: 'Glow B', x: 1300, y: 800, w: 700, color: C.lavender, opacity: 0.35, blur: 220 }),
       rect({ name: 'Interface shape A', x: 1180, y: -160, w: 760, h: 520, radius: 80, fill: 'rgba(255,255,255,0.35)' }),
-      heading({ x: M, y: 140, label: 'UI Elements', title: 'Components from the product' }),
+      heading({ x: M, y: 140, label: '06 - UI Elements', title: 'Components from the product' }),
       at('composer', c1, 330, 1060 / 736),
       at('toggle', c3, 330, 1.6),
       at('tabs', c3, 410, 1.5),
@@ -441,7 +441,7 @@ B.push({
     const h = Math.round(Math.max(...ys) + 140);
     return frame('07 · UI Design — Desktop ▶ animated', h, { type: 'linear', angle: 180, stops: [[0, C.canvas], [1, '#F7F6F4']] }, [
       dots({ x: 0, y: 0, w: W, h: 1250, color: 'rgba(45,40,34,0.10)', gap: 24 }),
-      heading({ x: M, y: 140, label: 'UI Design', title: 'Desktop' }),
+      heading({ x: M, y: 140, label: '07 - UI Design', title: 'Desktop' }),
       browser({ name: 'Hero screen', slug: 'assistants-desktop-large', x: M, y: 330, w: W - 2 * M, shadow: SH.float }),
       ...items,
       wave(W, h - 100, 100, '#E9E6FB', 'curve'),
@@ -462,7 +462,7 @@ B.push({
     return frame('08 · UI Design — Tablet & Mobile', h, { type: 'linear', angle: 180, stops: [[0, '#E9E6FB'], [1, '#F5F3FE']] }, [
       blob({ name: 'Glow', x: 600, y: 800, w: 900, color: C.white, opacity: 0.9, blur: 260 }),
       blob({ name: 'Glow lilac', x: -300, y: 1300, w: 800, color: C.lavender, opacity: 0.35, blur: 260 }),
-      heading({ x: M, y: 140, label: 'UI Design', title: 'Tablet & mobile', chipFill: 'rgba(67,56,202,0.08)' }),
+      heading({ x: M, y: 140, label: '08 - UI Design', title: 'Tablet & mobile', chipFill: 'rgba(67,56,202,0.08)' }),
       ...tabs,
       rect({ name: 'Interface shape', x: M - 40, y: pTop, w: W - 2 * M + 80, h: pBottom - pTop, radius: 72, fill: 'rgba(255,255,255,0.55)' }),
       ...phones,
@@ -489,7 +489,7 @@ B.push({
     return frame('09 · Walkthrough ▶ animated', h, { type: 'linear', angle: 180, stops: [[0, C.white], [1, '#F7F5FF']] }, [
       blob({ name: 'Glow lavender', x: 1200, y: -200, w: 800, color: C.lavender, opacity: 0.25, blur: 220 }),
       dots({ x: 0, y: 0, w: W, h, color: 'rgba(67,56,202,0.10)', gap: 26 }),
-      heading({ x: M, y: 140, label: 'Walkthrough', title: 'A guided first run' }),
+      heading({ x: M, y: 140, label: '09 - Walkthrough', title: 'A guided first run' }),
       card('Welcome', M, top, ww, wh, 'Welcome-to-Edspace', 4200),
       ...cards.map(([t, src], i) => group({ name: 'Step ' + (i + 1), x: M + i * (cw + g), y: cy, w: cw, h: ch + 70 }, [
         card('Card', 0, 0, cw, ch, src, [5200, 6400, 9000][i]),
@@ -530,7 +530,7 @@ B.push({
       crop('filters', { name: 'Detail · Filters', x: 30, y: 880, scale: 1.55, rotation: -2, radius: 12 }),
       crop('joinBtn', { name: 'Detail · Join with code', x: 520, y: 1000, scale: 1.7, rotation: 1.5, radius: 12 }),
       group({ name: 'Copy', x: tx, y: 440, w: 500, h: 320 }, [
-        chip({ text: 'Feature', x: 0, y: 0 }),
+        chip({ text: '11 - Assistants', x: 0, y: 0 }),
         text({ name: 'Feature name', text: 'Assistants', size: 104, weight: 500, ls: -0.04, x: -4, y: 50, lh: 112 }),
         text({ name: 'Caption', text: wrap('Create an assistant, keep it private or publish it, and let others join with a code.', 24, 400, 480), size: 24, lh: 36, color: BODY, x: 0, y: 190 }),
       ]),
@@ -558,7 +558,7 @@ B.push({
     const h = Math.round(top + 2 * cw + g + 180);
     return frame('12 · Empty states ▶ animated', h, { type: 'linear', angle: 180, stops: [[0, '#EFEEFB'], [1, '#F7F6FD']] }, [
       blob({ name: 'Glow', x: 900, y: 200, w: 900, color: C.white, opacity: 0.9, blur: 240 }),
-      heading({ x: M, y: 140, label: 'Empty states', title: 'Illustrations for every empty state' }),
+      heading({ x: M, y: 140, label: '12 - Empty states', title: 'Illustrations for every empty state' }),
       ...cards,
       wave(W, h - 100, 100, C.canvas, 'diagonal'),
     ]);
@@ -573,7 +573,7 @@ B.push({
       blob({ name: 'Glow', x: 900, y: 400, w: 900, color: C.lavender, opacity: 0.3, blur: 260 }),
       blob({ name: 'Glow peach', x: 1400, y: 100, w: 600, color: C.peach, opacity: 0.3, blur: 220 }),
       rect({ name: 'Interface shape', x: 640, y: 250, w: 1300, h: 820, radius: 80, fill: 'rgba(255,255,255,0.75)' }),
-      heading({ x: M, y: 390, label: 'Responsive', title: 'Desktop, tablet\nand mobile', caption: 'The same chat at 1440, 1920, 834 and 390 pixels wide.', capW: 340 }),
+      heading({ x: M, y: 390, label: '13 - Responsive', title: 'Desktop, tablet\nand mobile', caption: 'The same chat at 1440, 1920, 834 and 390 pixels wide.', capW: 340 }),
       macbook({ name: 'MacBook', slug: 'chat-focus-desktop', x: 720, y: 300, w: 1000 }),
       ipad({ name: 'iPad', slug: 'chat-focus-tablet', x: 520, y: 500, w: 410 }),
       iphone({ name: 'iPhone', slug: 'chat-focus-mobile', x: 1580, y: 600, w: 186 }),

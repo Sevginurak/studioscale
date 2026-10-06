@@ -173,15 +173,10 @@ function brackets(o) {
   ]);
 }
 // section label: chip with a dot
+// section label: plain text, "05 - Colors" (no pill, no dot), sized for readability
 function chip(o) {
-  const t = text({ text: o.text, size: o.size || 16, weight: 500, color: o.color || C.indigo, ls: 0.02 });
-  const padX = 14, dot = 8, h = 36;
-  const w = padX * 2 + dot + 10 + t.w;
-  return group({ name: 'Label / ' + o.text, x: o.x, y: o.y, w, h }, [
-    rect({ name: 'Chip', x: 0, y: 0, w, h, radius: 999, fill: o.fill || 'rgba(67,56,202,0.08)', stroke: o.stroke ? { color: o.stroke, width: 1 } : undefined }),
-    ellipse({ name: 'Dot', x: padX, y: h / 2 - dot / 2, w: dot, h: dot, fill: o.dot || o.color || C.indigo }),
-    Object.assign(t, { x: padX + dot + 10, y: (h - t.h) / 2 }),
-  ]);
+  const t = text({ name: 'Label', text: o.text, size: o.size || 24, weight: 500, color: o.color || C.indigo, ls: 0, lh: 30 });
+  return group({ name: 'Label / ' + o.text, x: o.x, y: o.y, w: t.w, h: 30 }, [Object.assign(t, { x: 0, y: 0 })]);
 }
 
 // ---------- transitions: shapes at the bottom of a section painted in the next section's colour ----------
