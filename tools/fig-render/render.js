@@ -248,6 +248,8 @@ function childDelta(n, base) {
   if (Math.abs(dw) < 0.01 && Math.abs(dh) < 0.01) return null;
   return { dw, dh, sx: base.x ? n.size.x / base.x : 1, sy: base.y ? n.size.y / base.y : 1 };
 }
+// a leaf icon (emoji, glyph) has no nested instances; a wrapper component (e.g. an icon box) does
+function hasInstance(n) { return (n.kids || []).some(k => k.type === 'INSTANCE' || hasInstance(k)); }
 const HIDE = new Set((process.env.HIDE || '').split(',').filter(Boolean));
 function render(n0, sc, pd) {
   if (HIDE.has(id(n0.guid))) return '';
@@ -256,7 +258,11 @@ function render(n0, sc, pd) {
   if (pd && !(n._dsd && (n._dsd.transform || n._dsd.size))) applyConstraints(n, pd);
   if (n.type === 'INSTANCE' && n0.symbolData) {
     const sid = n._swap || n.overriddenSymbolID; const sy = sid && nodes.get(id(sid));
-    if (sy && id(sid) !== id(n0.symbolData.symbolID) && sy.size && sy.size.x <= 48 && sy.size.y <= 48) n.size = { x: sy.size.x, y: sy.size.y };
+    if (sy && id(sid) !== id(n0.symbolData.symbolID) && sy.size && sy.size.x <= 48 && sy.size.y <= 48) {
+      // a square slot (e.g. a 16 px icon placeholder in an avatar) scales the new icon into its box; a stale non-square size takes the icon's own size
+      if (!hasInstance(sy) && n.size && Math.abs(n.size.x - n.size.y) < 0.5 && Math.abs(sy.size.x - sy.size.y) < 0.5 && Math.abs(n.size.x - sy.size.x) > 0.5) { n._fit = n.size.x / sy.size.x; if (process.env.DBG) console.error("fit", n.name, n._k, n.size.x, sy.name, sy.size.x, sc && sc.noDsd); }
+      else n.size = { x: sy.size.x, y: sy.size.y };
+    }
     if (sy && id(sid) !== id(n0.symbolData.symbolID)) {
       const ov = (sc && sc.ov.get(n._k)) || {};
       for (const f of ['effects', 'strokePaints', 'strokeWeight', 'strokeAlign', 'fillPaints', 'opacity']) if (!(f in ov) && f in sy) n[f] = sy[f];
@@ -383,7 +389,8 @@ function renderInstance(n0, n, sc) {
   if (swapped && sym.size && sym.size.x <= 48 && sym.size.y <= 48) nsc.noDsd = nsc.noDsd || 1;
   // instance resized with the Scale tool: render the component at its own size, scaled uniformly
   let scaleWrap = 0;
-  if (n.size && sym.size && sym.size.x) {
+  if (n._fit) { scaleWrap = n._fit; nsc.noDsd = (sc && sc.noDsd || 1) * n._fit; }
+  else   if (n.size && sym.size && sym.size.x) {
     const kx = n.size.x / sym.size.x, ky = n.size.y / sym.size.y;
     if (Math.abs(kx - ky) < 0.004 && Math.abs(kx - 1) > 0.004 && n0.strokeWeight && sym.strokeWeight && Math.abs(n0.strokeWeight / sym.strokeWeight - kx) < 0.004) { scaleWrap = kx; nsc.noDsd = (sc && sc.noDsd || 1) * kx; }
   }

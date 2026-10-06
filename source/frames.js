@@ -73,6 +73,8 @@ const K = {
   empty: { slug: 'assistants-all-empty-state', crop: { x: 489, y: 388, w: 722, h: 342 } },
   sideHeader: { slug: 'chat-focus-desktop', crop: { x: 14, y: 70, w: 250, h: 52 } },
   sideFolders: { slug: 'chat-focus-desktop', crop: { x: 14, y: 488, w: 250, h: 170 } },
+  joinBtn: { slug: 'assistants-desktop', crop: { x: 1150, y: 68, w: 128, h: 42 } },
+  createBtn: { slug: 'assistants-desktop', crop: { x: 1282, y: 68, w: 138, h: 42 } },
   folderMenu: { slug: 'chat-folder-name-dropdown', crop: { x: 283, y: 112, w: 226, h: 106 }, radius: 8 },
 };
 const crop = (k, o) => detail({ ...K[k], ...o });
@@ -92,9 +94,13 @@ function tiltedGrid(o) {
   for (let c = 0; c < cols; c++) {
     const items = []; let y = (c % 2 ? -colW * 0.45 : 0) + (o.offsets ? o.offsets[c] : 0);
     for (let r = 0; r < o.rows; r++) {
-      const slug = list[k++ % list.length];
+      const ld = o.loader && o.loader.col === c && o.loader.row === r ? o.loader : null;
+      const slug = ld ? ld.slug : list[k++ % list.length];
       const sc = screen({ name: 'Screen ' + (r + 1), slug, x: 0, y, w: colW, radius: o.radius || 14, shadow: o.shadow || SH.deep });
-      items.push(sc); y += sc.h + gap;
+      items.push(sc);
+      // skeleton loading: the loading-state screen sits on top and fades out as the content arrives
+      if (ld) items.push(screen({ name: 'Screen ' + (r + 1) + ' · Skeleton', slug: ld.skeleton, x: 0, y, w: colW, radius: o.radius || 14, opacity: ld.opacity }));
+      y += sc.h + gap;
     }
     colH.push(y);
     const dy = drift * (c % 2 ? 1 : -1) * kf;
@@ -110,30 +116,96 @@ function tiltedGrid(o) {
 const B = [];
 
 // 01 · Hero ------------------------------------------------------------------------
+
+// ---- one chat turn drawn on the empty conversation screen (chat-convo), in that screen's own pixels ----
+// phase: 0 hidden · 1 sent (bubble + thinking, dot n lit) · 2 AI reply
+const PROMPT = 'Help me solve this math problem step by step';
+const REPLY = "Of course! Let's work through it together, one step at a time.\n\n1. Paste the problem here, or attach a photo of it.\n2. We'll note what it asks for and what we already know.\n3. Then we'll solve each step, and I'll explain why it works.\n\nWhat's the problem you're working on?";
+// map a node drawn in a screen's own pixels onto a device/browser showing that screen at scale s from (ox, oy)
+function onScreen(n, s, ox, oy) {
+  const o = { ...n, x: ox + n.x * s, y: oy + n.y * s, w: n.w * s, h: n.h * s };
+  if (n.type === 'text') { o.size = n.size * s; o.lh = n.lh * s; }
+  if (n.type === 'screen') o.scale = n.scale * s;
+  if (typeof n.radius === 'number') o.radius = n.radius * s;
+  return o;
+}
+// the prompt typed into chat-focus-desktop's composer, word by word (step 0 = empty … TYPE_STEPS.length = done)
+const TYPE_STEPS = [2, 4, 6, 7, 9];
+function typing(step, s, ox, oy) {
+  const T = (n) => onScreen(n, s, ox, oy);
+  const words = PROMPT.split(' '), shown = step === 0 ? 0 : TYPE_STEPS[Math.min(step, TYPE_STEPS.length) - 1];
+  const nodes = [T(rect({ name: 'Typing · Field', x: 498, y: 612, w: 300, h: 28, fill: C.white, opacity: step > 0 ? 1 : 0 }))];
+  let x = 502;
+  words.forEach((wd, i) => {
+    const t = text({ name: 'Typing · Word ' + (i + 1), text: wd, size: 14, lh: 20, color: '#1E1E1E', x, y: 619, opacity: i < shown ? 1 : 0 });
+    nodes.push(T(t)); x += measure(wd + ' ', 14, 400);
+  });
+  const caretX = 502 + measure(words.slice(0, shown).join(' '), 14, 400) + 1;
+  nodes.push(T(rect({ name: 'Typing · Caret', x: caretX, y: 620, w: 1.3, h: 18, fill: '#1E1E1E', opacity: step > 0 ? 1 : 0 })));
+  return nodes;
+}
+function chatTurn(phase, dot, s, ox, oy) {
+  const T = (n) => onScreen(n, s, ox, oy);
+  const q = text({ name: 'Prompt', text: PROMPT, size: 16, lh: 24, color: '#1E1E1E', x: 0, y: 0 });
+  const bw = q.w + 28, bx = 1210 - bw, by = phase ? 165 : 205;
+  const on = phase ? 1 : 0;
+  const reply = text({ name: 'AI reply', text: wrap(REPLY, 16, 400, 700), size: 16, lh: 24, color: '#1E1E1E', x: 494, y: phase === 2 ? 233 : 245 });
+  return [
+    T(rect({ name: 'Sent · Bubble', x: bx, y: by, w: bw, h: 44, radius: 8, fill: '#EAE6E1', opacity: on })),
+    T({ ...q, name: 'Sent · Text', x: bx + 14, y: by + 10, opacity: on }),
+    ...[0, 1, 2].map(i => T(ellipse({ name: 'Thinking · Dot ' + (i + 1), x: 496 + i * 13, y: 247, w: 8, h: 8, fill: '#4338CA', opacity: phase === 1 ? (i === dot ? 1 : 0.25) : 0 }))),
+    T(text({ name: 'Thinking · Label', text: 'Thinking', size: 16, lh: 24, color: '#737373', x: 540, y: 239, opacity: phase === 1 ? 1 : 0 })),
+    T({ ...reply, opacity: phase === 2 ? 1 : 0 }),
+    T(screen({ name: 'AI reply · Actions', slug: 'chat-reply', crop: { x: 490, y: 744, w: 130, h: 36 }, scale: 1, x: 490, y: (phase === 2 ? 233 : 245) + reply.h + 8, opacity: phase === 2 ? 1 : 0 })),
+  ];
+}
+// the actions row lives in chat-reply (conversation messages); chat-convo has them hidden
+
 // pointer cursor (vector)
 const pointer = (name, x, y, opacity) => pathN({ name, x, y, w: 26, h: 30, d: 'M1 1L1 21L6.4 16L10.2 24.4L13.8 22.8L10.1 14.6L17 14.6Z', fill: C.white, stroke: { color: C.logoInk, width: 1.8, cap: 'round' }, opacity });
 
+// camera: a group holding the scene in frame coordinates, zoomed so frame point (fx, fy) lands on (tx, ty)
+const cam = (z, fx, fy, tx, ty) => ({ zoom: z, x: tx - fx * z, y: ty - fy * z });
+
 B.push({
   id: 'b01', page: 'behance', file: '01-hero', title: '01 · Hero ▶ animated',
-  keyframes: [{ name: 'New chat', hold: 900, duration: 1100 }, { name: 'Typing', hold: 900, duration: 1000 }, { name: 'AI reply', hold: 2200, duration: 1100 }],
+  keyframes: [
+    { name: 'New chat', hold: 1000, duration: 1100 },
+    ...TYPE_STEPS.map((_, i) => ({ name: 'Typing ' + (i + 1), hold: i === TYPE_STEPS.length - 1 ? 450 : 120, duration: i === TYPE_STEPS.length - 1 ? 450 : 110, ease: 'linear' })),
+    { name: 'Send', hold: 250, duration: 700 },
+    { name: 'Thinking 1', hold: 250, duration: 300 }, { name: 'Thinking 2', hold: 250, duration: 300 }, { name: 'Thinking 3', hold: 250, duration: 800 },
+    { name: 'AI reply', hold: 2200, duration: 1100 },
+    { name: 'Back to new chat', hold: 500, duration: 900 },
+  ],
   build: (kf) => {
-    const h = 1320, lx = (W - 1180) / 2, ly = 330;
-    // screen origin inside the MacBook (see lib.macbook geometry)
+    const h = 1320, lx = (W - 1180) / 2, ly = 330, NT = TYPE_STEPS.length;
+    const K = { typeEnd: NT, send: NT + 1, think: NT + 2, reply: NT + 5, back: NT + 6 };
     const lidW = 1180 * 0.86, sc = (lidW - lidW * 0.024 * 2) / 1440, ox = lx + (1180 - lidW) / 2 + lidW * 0.024, oy = ly + lidW * 0.03;
     const P = (x, y) => [ox + x * sc, oy + y * sc];
-    const cur = [P(560, 632), P(1186, 680), P(78, 154)][kf];
-    const lap = macbook({ name: 'MacBook', slug: 'chat-focus-desktop', x: lx, y: ly, w: 1180, screenName: 'Screen · New chat', extraScreens: [{ name: 'Screen · Typing', slug: 'chat-typing', opacity: kfv(kf, 0, 1, 1) }, { name: 'Screen · AI reply', slug: 'chat-reply', opacity: kfv(kf, 0, 0, 1) }] });
-    const ph = iphone({ name: 'iPhone', slug: 'chat-focus-mobile', x: 1436, y: kfv(kf, 548, 560, 572), w: 290, rotation: kfv(kf, 0, -1, -2) });
+    const typeStep = kf === 0 || kf >= K.send + 1 ? 0 : Math.min(kf, NT);
+    const phase = kf <= K.send ? 0 : kf < K.reply ? 1 : 2;
+    // camera per keyframe
+    const c = kf === 0 || kf === K.back ? cam(1, 0, 0, 0, 0)
+      : kf <= K.send ? cam(1.75, ...P(850, 630), W / 2, 760)
+      : kf < K.reply ? cam(1.6, ...P(850, 330), W / 2, 600)
+      : cam(1.55, ...P(850, 400), W / 2, 640);
+    const toView = ([x, y]) => [c.x + x * c.zoom, c.y + y * c.zoom];
+    const cur = toView(kf === 0 ? P(560, 690) : kf < K.typeEnd ? P(760, 700) : kf <= K.send ? P(1188, 680) : kf < K.reply ? P(1130, 600) : kf === K.reply ? P(900, 560) : P(78, 154));
+    const wide = c.zoom === 1 ? 1 : 0;
+    const lap = macbook({ name: 'MacBook', slug: 'chat-focus-desktop', x: lx, y: ly, w: 1180, screenName: 'Screen · New chat', extraScreens: [{ name: 'Screen · Conversation', slug: 'chat-convo', opacity: kf > K.send ? 1 : 0 }] });
     return frame('01 · Hero ▶ animated', h, { type: 'linear', angle: 180, stops: [[0, '#4338CA'], [0.55, '#2E24A0'], [1, '#1E1760']] }, [
-      blob({ name: 'Glow A', x: kfv(kf, -260, -160, -60), y: -300, w: 980, color: C.lavender, opacity: 0.55, blur: 230 }),
-      blob({ name: 'Glow B', x: kfv(kf, 1320, 1250, 1180), y: kfv(kf, 380, 340, 300), w: 720, color: C.peach, opacity: 0.26, blur: 240 }),
+      blob({ name: 'Glow A', x: -260 + kf * 14, y: -300, w: 980, color: C.lavender, opacity: 0.55, blur: 230 }),
+      blob({ name: 'Glow B', x: 1320 - kf * 10, y: 380 - kf * 6, w: 720, color: C.peach, opacity: 0.26, blur: 240 }),
       blob({ name: 'Glow C', x: 520, y: 760, w: 980, h: 520, color: '#6D64E8', opacity: 0.5, blur: 220 }),
       dots({ x: 0, y: 0, w: W, h, color: 'rgba(255,255,255,0.10)', gap: 28, size: 2 }),
-      rect({ name: 'Interface shape', x: 200, y: 470, w: W - 400, h: 690, radius: 64, fill: 'rgba(255,255,255,0.06)', stroke: { color: 'rgba(255,255,255,0.12)', width: 1 } }),
-      logo({ x: (W - 250) / 2, y: 92, w: 250, variant: 'white' }),
-      text({ name: 'Tagline', text: 'AI chat and assistants for schools', size: 30, weight: 400, color: 'rgba(255,255,255,0.8)', align: 'center', cx: W / 2, y: 222, lh: 38 }),
-      lap,
-      ph,
+      rect({ name: 'Interface shape', x: 200, y: 470, w: W - 400, h: 690, radius: 64, fill: 'rgba(255,255,255,0.06)', stroke: { color: 'rgba(255,255,255,0.12)', width: 1 }, opacity: wide }),
+      logo({ x: (W - 250) / 2, y: 92, w: 250, variant: 'white', opacity: wide }),
+      text({ name: 'Tagline', text: 'AI chat and assistants for schools', size: 30, weight: 400, color: 'rgba(255,255,255,0.8)', align: 'center', cx: W / 2, y: 222, lh: 38, opacity: wide }),
+      group({ name: 'Camera', x: c.x, y: c.y, w: W, h, zoom: c.zoom }, [
+        lap,
+        ...typing(typeStep, sc, ox, oy),
+        ...chatTurn(phase, (kf - K.think) % 3, sc, ox, oy),
+      ]),
       pointer('Cursor', cur[0], cur[1]),
       wave(W, h - 120, 120, C.canvas, 'wave'),
     ]);
@@ -152,8 +224,8 @@ B.push({
       rect({ name: 'Interface shape', x: -140, y: 110, w: 1080, h: 930, radius: 72, fill: C.white }),
       dots({ x: 0, y: 0, w: 960, h: 110, color: 'rgba(45,40,34,0.14)', gap: 24 }),
       brackets({ name: 'Brackets', x: 70, y: 160, w: 940, h: 830, color: C.indigo, len: 90, t: 7, r: 22 }),
-      browser({ name: 'Window · Assistants', slug: 'assistants-desktop', x: 110, y: 205, w: 760 }),
-      browser({ name: 'Window · Chat', slug: 'chat-typing', x: 330, y: 520, w: 640, shadow: SH.deep }),
+      browser({ name: 'Window · Assistants', slug: 'assistants-desktop', x: 110, y: 205, w: 680 }),
+      browser({ name: 'Window · Chat', slug: 'chat-typing', x: 290, y: 500, w: 680, shadow: SH.deep }),
       heading({ x: fx, y: 230, label: 'About the project', title: 'What would you like\nto do today?', size: 60 }),
       text({ name: 'Intro', text: wrap(intro, 22, 400, 620), size: 22, lh: 34, color: BODY, x: fx, y: 470 }),
       group({ name: 'Facts', x: fx, y: 760, w: 640, h: 200 }, facts.flatMap(([k, v], i) => {
@@ -173,12 +245,12 @@ B.push({
 B.push({
   id: 'b03', page: 'behance', file: '03-flow', title: '03 · Key flow',
   build: () => {
-    const h = 1880, sw = 760;
+    const h = 2060, sw = 680, P = 200, r1 = 470, r2 = 1310, dy = 120;
     const steps = [
-      { n: '01', t: 'Ask', c: 'What would you like to do today?', slug: 'chat-focus-desktop', x: M, y: 420 },
-      { n: '02', t: 'Type', c: 'Help me solve this math problem step by step', slug: 'chat-typing', x: W - M - sw, y: 540 },
-      { n: '03', t: 'Browse assistants', c: 'All  /  Draft  /  Private  /  Published', slug: 'assistants-desktop', x: M, y: 1150 },
-      { n: '04', t: 'Find one', c: 'Search assistants', slug: 'assistants-search', x: W - M - sw, y: 1270 },
+      { n: '01', t: 'Ask', c: 'What would you like to do today?', slug: 'chat-focus-desktop', x: P, y: r1 },
+      { n: '02', t: 'Type', c: 'Help me solve this math problem step by step', slug: 'chat-typing', x: W - P - sw, y: r1 + dy },
+      { n: '03', t: 'Browse assistants', c: 'All  /  Draft  /  Private  /  Published', slug: 'assistants-desktop', x: P, y: r2 },
+      { n: '04', t: 'Find one', c: 'Search assistants', slug: 'assistants-search', x: W - P - sw, y: r2 + dy },
     ];
     const sh = sw * 960 / 1440;
     return frame('03 · Key flow', h, { type: 'linear', angle: 180, stops: [[0, C.indigoTint], [1, '#EFEEFB']] }, [
@@ -190,9 +262,10 @@ B.push({
         text({ name: 'Step caption ' + s.n, text: s.c, size: 18, color: BODY, x: s.x + 70, y: s.y - 54, lh: 24 }),
         browser({ name: 'Step ' + s.n + ' screen', slug: s.slug, x: s.x, y: s.y, w: sw }),
       ]),
-      arrow('Arrow 1', [M + sw + 18, 420 + 170], [M + sw + 70, 420 + 170], [W - M - sw - 70, 540 + 120], [W - M - sw - 16, 540 + 120]),
-      arrow('Arrow 2', [W - M - sw / 2, 540 + sh + 26], [W - M - sw / 2, 540 + sh + 120], [M + sw + 150, 1000], [M + sw - 40, 1040]),
-      arrow('Arrow 3', [M + sw + 18, 1150 + 170], [M + sw + 70, 1150 + 170], [W - M - sw - 70, 1270 + 120], [W - M - sw - 16, 1270 + 120]),
+      // side arrows sit at the screens' vertical middle
+      arrow('Arrow 1', [P + sw + 18, r1 + sh / 2 + 30], [P + sw + 80, r1 + sh / 2 + 30], [W - P - sw - 80, r1 + dy + sh / 2], [W - P - sw - 16, r1 + dy + sh / 2]),
+      arrow('Arrow 2', [W - P - sw / 2, r1 + dy + sh + 30], [W - P - sw / 2, r1 + dy + sh + 130], [P + sw + 150, r2 - 150], [P + sw - 40, r2 - 110]),
+      arrow('Arrow 3', [P + sw + 18, r2 + sh / 2 + 30], [P + sw + 80, r2 + sh / 2 + 30], [W - P - sw - 80, r2 + dy + sh / 2], [W - P - sw - 16, r2 + dy + sh / 2]),
       wave(W, h - 100, 100, '#120C3D', 'diagonal'),
     ]);
   },
@@ -248,31 +321,32 @@ B.push({
 // 05 · Colors ----------------------------------------------------------------------
 function swatch(o) {
   const { x, y, w, h, color, name, hex, role } = o;
-  const sw = h - 92;
+  const P = 16, sw = h - 116;
   const light = /^#(F|E|D)/i.test(color) || color === C.white;
   return group({ name: 'Swatch / ' + name, x, y, w, h }, [
-    rect({ name: 'Card', x: 0, y: 0, w, h, radius: 24, fill: C.white, shadow: SH.card }),
-    rect({ name: 'Color', x: 10, y: 10, w: w - 20, h: sw, radius: 16, fill: color, stroke: light ? { color: 'rgba(45,40,34,0.10)', width: 1 } : undefined }),
-    role ? text({ name: 'Role', text: role.toUpperCase(), size: 13, weight: 500, ls: 0.14, color: light ? 'rgba(45,40,34,0.6)' : 'rgba(255,255,255,0.85)', x: 28, y: 30 }) : null,
-    text({ name: 'Name', text: name, size: w > 300 ? 24 : 19, weight: 500, color: C.ink, x: 22, y: sw + 24, lh: 28 }),
-    Object.assign(text({ name: 'Hex', text: (hex || color).replace('#', ''), size: w > 300 ? 17 : 15, color: 'rgba(45,40,34,0.55)', x: 22, y: sw + 54, lh: 22 }), { figmaText: hex || color }),
+    rect({ name: 'Card', x: 0, y: 0, w, h, radius: 28, fill: C.white, shadow: SH.card }),
+    rect({ name: 'Color', x: P, y: P, w: w - 2 * P, h: sw, radius: 16, fill: color, stroke: light ? { color: 'rgba(45,40,34,0.10)', width: 1 } : undefined }),
+    role ? text({ name: 'Role', text: role.toUpperCase(), size: 13, weight: 500, ls: 0.14, color: light ? 'rgba(45,40,34,0.6)' : 'rgba(255,255,255,0.85)', x: P + 22, y: P + 22 }) : null,
+    text({ name: 'Name', text: name, size: w > 300 ? 24 : 19, weight: 500, color: C.ink, x: P + 14, y: P + sw + 22, lh: 28 }),
+    Object.assign(text({ name: 'Hex', text: (hex || color).replace('#', ''), size: w > 300 ? 17 : 15, color: 'rgba(45,40,34,0.55)', x: P + 14, y: P + sw + 54, lh: 22 }), { figmaText: hex || color }),
   ]);
 }
 function pairSwatch(o) {
   const { x, y, w, h, bg, fg, name, sample } = o;
+  const P = 16, bh = h - 112;
   return group({ name: 'Swatch / ' + name, x, y, w, h }, [
-    rect({ name: 'Card', x: 0, y: 0, w, h, radius: 24, fill: C.white, shadow: SH.card }),
-    rect({ name: 'Background color', x: 10, y: 10, w: w - 20, h: h - 84, radius: 16, fill: bg, stroke: { color: 'rgba(45,40,34,0.06)', width: 1 } }),
-    text({ name: 'Sample', text: sample, size: 30, weight: 500, color: fg, x: 34, y: 10 + (h - 84) / 2 - 18, lh: 36 }),
-    ellipse({ name: 'Foreground dot', x: w - 64, y: 10 + (h - 84) / 2 - 16, w: 32, h: 32, fill: fg }),
-    text({ name: 'Name', text: name, size: 19, weight: 500, color: C.ink, x: 22, y: h - 64, lh: 26 }),
-    Object.assign(text({ name: 'Hex', text: bg.replace('#', '') + '  /  ' + fg.replace('#', ''), size: 15, color: 'rgba(45,40,34,0.55)', x: 22, y: h - 36, lh: 22 }), { figmaText: bg + '  /  ' + fg }),
+    rect({ name: 'Card', x: 0, y: 0, w, h, radius: 28, fill: C.white, shadow: SH.card }),
+    rect({ name: 'Background color', x: P, y: P, w: w - 2 * P, h: bh, radius: 16, fill: bg, stroke: { color: 'rgba(45,40,34,0.06)', width: 1 } }),
+    text({ name: 'Sample', text: sample, size: 30, weight: 500, color: fg, x: P + 26, y: P + bh / 2 - 18, lh: 36 }),
+    ellipse({ name: 'Foreground dot', x: w - P - 58, y: P + bh / 2 - 16, w: 32, h: 32, fill: fg }),
+    text({ name: 'Name', text: name, size: 19, weight: 500, color: C.ink, x: P + 14, y: P + bh + 22, lh: 26 }),
+    Object.assign(text({ name: 'Hex', text: bg.replace('#', '') + '  /  ' + fg.replace('#', ''), size: 15, color: 'rgba(45,40,34,0.55)', x: P + 14, y: P + bh + 52, lh: 22 }), { figmaText: bg + '  /  ' + fg }),
   ]);
 }
 B.push({
   id: 'b05', page: 'behance', file: '05-colors', title: '05 · Colors',
   build: () => {
-    const h = 1820, inner = W - 2 * M, g = 18;
+    const h = 1820, inner = W - 2 * M, g = 24;
     const label = (t, x, y) => text({ name: 'Group / ' + t, text: t.toUpperCase(), size: 14, weight: 500, ls: 0.16, color: 'rgba(45,40,34,0.55)', x, y });
     const row = (items, y, hh, x0 = M, width = inner) => { const w = (width - g * (items.length - 1)) / items.length; return items.map((it, i) => swatch({ ...it, x: x0 + i * (w + g), y, w, h: hh })); };
     const half = (inner - 40) / 2;
@@ -344,7 +418,7 @@ B.push({
       heading({ x: M, y: 140, label: 'UI Design', title: 'Desktop' }),
       browser({ name: 'Hero screen', slug: 'assistants-desktop-large', x: M, y: 330, w: W - 2 * M, shadow: SH.float }),
       ...items,
-      wave(W, h - 100, 100, C.peachLight, 'curve'),
+      wave(W, h - 100, 100, '#E9E6FB', 'curve'),
     ]);
   },
 });
@@ -358,9 +432,9 @@ B.push({
     const pw = 330, pg = 150, px0 = (W - (3 * pw + 2 * pg)) / 2;
     const phones = MOBILE.map((slug, i) => iphone({ name: 'iPhone ' + (i + 1), slug, x: px0 + i * (pw + pg), y: 1250 + (i === 1 ? -60 : 0), w: pw }));
     const h = 2060;
-    return frame('08 · UI Design — Tablet & Mobile', h, { type: 'linear', angle: 180, stops: [[0, C.peachLight], [1, '#FFF4EA']] }, [
+    return frame('08 · UI Design — Tablet & Mobile', h, { type: 'linear', angle: 180, stops: [[0, '#E9E6FB'], [1, '#F5F3FE']] }, [
       blob({ name: 'Glow', x: 600, y: 800, w: 900, color: C.white, opacity: 0.9, blur: 260 }),
-      blob({ name: 'Glow peach', x: -300, y: 1300, w: 800, color: C.peach, opacity: 0.35, blur: 260 }),
+      blob({ name: 'Glow lilac', x: -300, y: 1300, w: 800, color: C.lavender, opacity: 0.35, blur: 260 }),
       heading({ x: M, y: 140, label: 'UI Design', title: 'Tablet & mobile', chipFill: 'rgba(67,56,202,0.08)' }),
       ...tabs,
       rect({ name: 'Interface shape', x: M - 40, y: 1190, w: W - 2 * M + 80, h: 760, radius: 72, fill: 'rgba(255,255,255,0.55)' }),
@@ -374,12 +448,15 @@ B.push({
 // 09 · Feature — Chat ▶ animated -----------------------------------------------------
 B.push({
   id: 'b09', page: 'behance', file: '09-feature-chat', title: '09 · Feature — Chat ▶ animated',
-  keyframes: [{ name: 'Focus', hold: 1400, duration: 1300 }, { name: 'Typing', hold: 1800, duration: 1300 }],
-  build: (kf) => {
-    const h = 1180, bx = 720, by = 190, bw = 1000;
+  keyframes: [{ name: 'Focus', hold: 1200, duration: 600 }, ...TYPE_STEPS.map((_, i) => ({ name: 'Typing ' + (i + 1), hold: i === TYPE_STEPS.length - 1 ? 900 : 120, duration: i === TYPE_STEPS.length - 1 ? 800 : 110, ease: 'linear' })), { name: 'Thinking 1', hold: 250, duration: 300 }, { name: 'Thinking 2', hold: 250, duration: 300 }, { name: 'Thinking 3', hold: 250, duration: 700 }, { name: 'AI reply', hold: 2200, duration: 1200 }],
+  build: (kf0) => {
+    const h = 1180, bx = 720, by = 190, bw = 1000, NT = TYPE_STEPS.length;
+    const typeStep = kf0 <= NT ? kf0 : 0;
+    const kf = kf0 === 0 ? 0 : kf0 <= NT ? 1 : kf0 - NT + 1; // 0 focus · 1 typing · 2-4 thinking · 5 reply
+    const phase = kf < 2 ? 0 : kf < 5 ? 1 : 2;
     return frame('09 · Feature — Chat ▶ animated', h, { type: 'linear', angle: 180, stops: [[0, C.white], [1, '#F7F5FF']] }, [
-      blob({ name: 'Glow peach', x: kfv(kf, 1240, 1180), y: kfv(kf, -200, -150), w: 760, color: C.peach, opacity: 0.35, blur: 220 }),
-      blob({ name: 'Glow lavender', x: kfv(kf, 300, 380), y: 700, w: 900, color: C.lavender, opacity: 0.28, blur: 240 }),
+      blob({ name: 'Glow peach', x: kfv(kf, 1240, 1180, 1170, 1160, 1150, 1130), y: kfv(kf, -200, -150, -140, -130, -120, -100), w: 760, color: C.peach, opacity: 0.35, blur: 220 }),
+      blob({ name: 'Glow lavender', x: kfv(kf, 300, 380, 390, 400, 410, 430), y: 700, w: 900, color: C.lavender, opacity: 0.28, blur: 240 }),
       dots({ x: 0, y: 0, w: W, h, color: 'rgba(67,56,202,0.12)', gap: 26 }),
       rect({ name: 'Interface shape', x: bx - 60, y: by - 60, w: W - bx + 200, h: 790, radius: 64, fill: 'rgba(255,255,255,0.7)', stroke: { color: 'rgba(67,56,202,0.08)', width: 1 } }),
       group({ name: 'Copy', x: M, y: 300, w: 520, h: 520 }, [
@@ -389,12 +466,13 @@ B.push({
         text({ name: 'UI line', text: '“What would you like to do today?”', size: 20, weight: 500, color: C.indigo, x: 0, y: 320, lh: 28 }),
       ]),
       browser({ name: 'Browser', slug: 'chat-focus-desktop', x: bx, y: by, w: bw }),
-      browser({ name: 'Browser typing', slug: 'chat-typing', x: bx, y: by, w: bw, opacity: kfv(kf, 0, 1) }),
-      crop('toggle', { name: 'Detail · Toggle', x: 1430, y: kfv(kf, 128, 116), scale: 1.7 }),
-      crop('model', { name: 'Detail · Model', x: kfv(kf, 1530, 1540), y: kfv(kf, 770, 750), scale: 2 }),
-      crop('composer', { name: 'Detail · Composer', x: 640, y: kfv(kf, 800, 760), scale: 0.95, opacity: kfv(kf, 0, 1) }),
-      crop('context', { name: 'Detail · Context book', x: 640, y: kfv(kf, 780, 740), scale: 2, opacity: kfv(kf, 1, 0) }),
-      wave(W, h - 110, 110, '#4338CA', 'diagonal-r'),
+      browser({ name: 'Browser conversation', slug: 'chat-convo', x: bx, y: by, w: bw, shadow: false, opacity: kf >= 2 ? 1 : 0 }),
+      ...typing(typeStep, bw / 1440, bx, by),
+      ...chatTurn(phase, (kf - 2) % 3, bw / 1440, bx, by),
+      crop('toggle', { name: 'Detail · Toggle', x: 1430, y: kfv(kf, 128, 116, 112, 108, 104, 100), scale: 1.7 }),
+      crop('model', { name: 'Detail · Model', x: kfv(kf, 1530, 1540), y: kfv(kf, 770, 750, 750, 750, 750, 740), scale: 2 }),
+      crop('composer', { name: 'Detail · Composer', x: 640, y: kfv(kf, 800, 760, 790), scale: 0.95, opacity: kf0 === NT ? 1 : 0 }),
+      crop('context', { name: 'Detail · Context book', x: 640, y: kfv(kf, 780, 740), scale: 2, opacity: kf === 0 ? 1 : 0 }),
     ]);
   },
 });
@@ -402,13 +480,14 @@ B.push({
 // 10 · Visual break ▶ animated -------------------------------------------------------
 B.push({
   id: 'b10', page: 'behance', file: '10-visual-break', title: '10 · Visual break ▶ animated',
-  keyframes: [{ name: 'Rest', hold: 300, duration: 3200, ease: 'inout' }, { name: 'Drift', hold: 300, duration: 3200, ease: 'inout' }],
+  keyframes: [{ name: 'Rest', hold: 900, duration: 3200, ease: 'inout' }, { name: 'Drift', hold: 900, duration: 3200, ease: 'inout' }],
   build: (kf) => {
     const h = 1100;
     const list = ['assistants-desktop', 'assistants-search', 'chat-focus-desktop', 'assistants-active', 'assistants-all-empty-state', 'chat-typing', 'assistants-loading-state', 'chat-error', 'assistants-private-empty-state', 'chat-enabled', 'assistants-search-no-found', 'assistants-published-empty-state', 'assistants-draft-empty-state', 'assistants-search-numbers-no-found'];
     return frame('10 · Visual break ▶ animated', h, { type: 'linear', angle: 180, stops: [[0, '#4338CA'], [1, '#2B219B']] }, [
       blob({ name: 'Glow', x: 500, y: 200, w: 1000, color: '#7A71F0', opacity: 0.6, blur: 260 }),
-      tiltedGrid({ cx: W / 2, cy: h / 2, cols: 5, rows: 4, colW: 720, gap: 40, list, angle: -24, drift: 200, kf, radius: 16 }),
+      tiltedGrid({ cx: W / 2, cy: h / 2, cols: 5, rows: 4, colW: 720, gap: 40, list: list.filter(x => x !== 'assistants-loading-state'), angle: -24, drift: 200, kf, radius: 16, loader: { col: 2, row: 1, slug: 'assistants-desktop', skeleton: 'assistants-loading-state', opacity: kfv(kf, 1, 0) } }),
+      wave(W, 0, 110, '#F7F5FF', 'diagonal-r-top'),
       wave(W, h - 100, 100, C.canvas, 'wave'),
     ]);
   },
@@ -425,6 +504,9 @@ B.push({
       macbook({ name: 'MacBook', slug: 'assistants-desktop', x: 70, y: 250, w: 1040 }),
       crop('cardWar', { name: 'Detail · Private assistant', x: 790, y: 770, scale: 1.15, rotation: 3, shadow: SH.deep }),
       crop('searchField', { name: 'Detail · Search', x: 40, y: 180, scale: 1.45, rotation: -2 }),
+      crop('createBtn', { name: 'Detail · Create assistant', x: 850, y: 196, scale: 1.8, rotation: 2, radius: 12, shadow: SH.deep }),
+      crop('filters', { name: 'Detail · Filters', x: 30, y: 880, scale: 1.55, rotation: -2, radius: 12 }),
+      crop('joinBtn', { name: 'Detail · Join with code', x: 520, y: 1000, scale: 1.7, rotation: 1.5, radius: 12 }),
       group({ name: 'Copy', x: tx, y: 330, w: 500, h: 560 }, [
         chip({ text: 'Feature 02', x: 0, y: 0 }),
         text({ name: 'Feature name', text: 'Assistants', size: 104, weight: 500, ls: -0.04, x: -4, y: 50, lh: 112 }),
@@ -506,8 +588,8 @@ B.push({
       rect({ name: 'Interface shape', x: 640, y: 250, w: 1300, h: 820, radius: 80, fill: 'rgba(255,255,255,0.75)' }),
       heading({ x: M, y: 390, label: 'Responsive', title: 'Desktop, tablet\nand mobile', caption: 'The same chat at 1440, 1920, 834 and 390 pixels wide.', capW: 340 }),
       macbook({ name: 'MacBook', slug: 'chat-focus-desktop', x: 720, y: 300, w: 1000 }),
-      ipad({ name: 'iPad', slug: 'chat-focus-tablet', x: 548, y: 580, w: 250 }),
-      iphone({ name: 'iPhone', slug: 'chat-focus-mobile', x: 1560, y: 560, w: 200 }),
+      ipad({ name: 'iPad', slug: 'chat-focus-tablet', x: 520, y: 500, w: 410 }),
+      iphone({ name: 'iPhone', slug: 'chat-focus-mobile', x: 1580, y: 600, w: 186 }),
       wave(W, h - 110, 110, '#4338CA', 'curve'),
     ]);
   },
@@ -542,18 +624,39 @@ const dframe = (name, fill, children) => ({ type: 'frame', name, w: DW, h: DH, f
 
 D.push({
   id: 'd01', page: 'dribbble', file: '01-single-screen-hero', title: '01 · Cover ▶ animated',
-  keyframes: [{ name: 'Typing', hold: 1200, duration: 1300 }, { name: 'AI reply', hold: 1800, duration: 1300 }],
-  build: (kf) => dframe('01 · Cover ▶ animated', { type: 'linear', angle: 160, stops: [[0, '#4F45D6'], [1, '#1E1760']] }, [
-    blob({ name: 'Glow A', x: kfv(kf, -180, -120), y: -220, w: 560, color: C.lavender, opacity: 0.6, blur: 150 }),
-    blob({ name: 'Glow B', x: 520, y: kfv(kf, 380, 330), w: 380, color: C.peach, opacity: 0.3, blur: 140 }),
-    dots({ x: 0, y: 0, w: DW, h: DH, color: 'rgba(255,255,255,0.10)', gap: 20, size: 1.5 }),
-    logo({ x: 40, y: 36, w: 104, variant: 'white' }),
-    text({ name: 'Headline', text: 'AI chat for\nevery classroom', size: 38, weight: 500, ls: -0.03, color: C.white, x: 40, y: 112, lh: 42 }),
-    browser({ name: 'Browser', slug: 'chat-typing', x: 300, y: 150, w: 640, shadow: SH.deep }),
-    browser({ name: 'Browser reply', slug: 'chat-reply', x: 300, y: 150, w: 640, shadow: false, opacity: kfv(kf, 0, 1) }),
-    iphone({ name: 'iPhone', slug: 'chat-focus-mobile', x: 130, y: kfv(kf, 250, 236), w: 170, rotation: kfv(kf, -6, -4), shadow: SH.deep }),
-    crop('composer', { name: 'Detail · Composer', x: 400, y: kfv(kf, 478, 462), scale: 0.56, shadow: SH.deep, opacity: kfv(kf, 1, 0) }),
-  ]),
+  keyframes: [
+    { name: 'Cover', hold: 1600, duration: 1100 },
+    { name: 'New chat', hold: 350, duration: 200 },
+    ...TYPE_STEPS.map((_, i) => ({ name: 'Typing ' + (i + 1), hold: i === TYPE_STEPS.length - 1 ? 400 : 120, duration: i === TYPE_STEPS.length - 1 ? 700 : 110, ease: 'linear' })),
+    { name: 'Thinking 1', hold: 250, duration: 300 }, { name: 'Thinking 2', hold: 250, duration: 300 }, { name: 'Thinking 3', hold: 250, duration: 800 },
+    { name: 'AI reply', hold: 1800, duration: 1200 },
+  ],
+  build: (kf) => {
+    const NT = TYPE_STEPS.length, K = { typeEnd: NT + 1, think: NT + 2, reply: NT + 5 };
+    const bx = 270, by = 228, bw = 600, s = bw / 1440;
+    const P = (x, y) => [bx + x * s, by + y * s];
+    const convo = kf === 0 || kf >= K.think;
+    const typeStep = kf >= 1 && kf <= K.typeEnd ? kf - 1 : 0;
+    const phase = kf === 0 || kf >= K.reply ? 2 : kf >= K.think ? 1 : 0;
+    const c = kf === 0 ? cam(1, 0, 0, 0, 0)
+      : kf <= K.typeEnd ? cam(1.9, ...P(850, 600), DW / 2, 330)
+      : kf < K.reply ? cam(1.8, ...P(850, 320), DW / 2, 280)
+      : cam(1.7, ...P(850, 400), DW / 2, 300);
+    const wide = c.zoom === 1 ? 1 : 0;
+    return dframe('01 · Cover ▶ animated', { type: 'linear', angle: 160, stops: [[0, '#4F45D6'], [1, '#1E1760']] }, [
+      blob({ name: 'Glow A', x: -180 + kf * 6, y: -220, w: 560, color: C.lavender, opacity: 0.6, blur: 150 }),
+      blob({ name: 'Glow B', x: 520, y: 380 - kf * 4, w: 380, color: C.peach, opacity: 0.3, blur: 140 }),
+      dots({ x: 0, y: 0, w: DW, h: DH, color: 'rgba(255,255,255,0.10)', gap: 20, size: 1.5 }),
+      group({ name: 'Camera', x: c.x, y: c.y, w: DW, h: DH, zoom: c.zoom }, [
+        browser({ name: 'Browser', slug: 'chat-focus-desktop', x: bx, y: by, w: bw, shadow: SH.deep }),
+        browser({ name: 'Browser · Conversation', slug: 'chat-convo', x: bx, y: by, w: bw, shadow: false, opacity: convo ? 1 : 0 }),
+        ...typing(typeStep, s, bx, by),
+        ...chatTurn(phase, (kf - K.think) % 3, s, bx, by),
+      ]),
+      logo({ x: 40, y: 36, w: 104, variant: 'white', opacity: wide }),
+      text({ name: 'Headline', text: 'AI chat for\nevery classroom', size: 38, weight: 500, ls: -0.03, color: C.white, x: 40, y: 104, lh: 42, opacity: wide }),
+    ]);
+  },
 });
 
 D.push({

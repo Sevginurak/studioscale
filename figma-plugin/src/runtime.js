@@ -242,8 +242,12 @@ async function build(opts) {
     dup.x = lx; dup.y = ly; lx += s.w + 200; rowH = Math.max(rowH, s.h);
     // state variants (e.g. the conversation with its open menus closed): hide the named layers on the duplicate
     if (s.hidden && s.hidden.length) {
-      const names = new Set(s.hidden);
-      for (const n of dup.findAll(n => names.has(n.name))) n.visible = false;
+      // "Parent > Child" hides only direct children of layers named Parent; a plain name hides every match
+      for (const h of new Set(s.hidden)) {
+        const [a, b] = h.split(' > ');
+        if (b) { for (const p of dup.findAll(n => n.name === a)) for (const c of (p.children || [])) if (c.name === b) c.visible = false; }
+        else for (const n of dup.findAll(n => n.name === a)) n.visible = false;
+      }
     }
     const comp = figma.createComponentFromNode(dup);
     comp.name = 'Screen / ' + s.name; comp.setPluginData(PLUGIN_KEY, '1');

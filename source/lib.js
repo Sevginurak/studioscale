@@ -86,10 +86,10 @@ function screen(o) {
 
 // ---------- shadows ----------
 const SH = {
-  soft: [{ x: 0, y: 2, blur: 6, spread: 0, color: 'rgba(21,9,47,0.06)' }, { x: 0, y: 18, blur: 40, spread: -6, color: 'rgba(21,9,47,0.14)' }],
-  float: [{ x: 0, y: 4, blur: 10, spread: 0, color: 'rgba(21,9,47,0.08)' }, { x: 0, y: 40, blur: 80, spread: -12, color: 'rgba(21,9,47,0.28)' }],
-  deep: [{ x: 0, y: 8, blur: 20, spread: 0, color: 'rgba(5,3,20,0.25)' }, { x: 0, y: 60, blur: 120, spread: -10, color: 'rgba(5,3,20,0.55)' }],
-  card: [{ x: 0, y: 1, blur: 3, spread: 0, color: 'rgba(21,9,47,0.06)' }, { x: 0, y: 12, blur: 32, spread: -4, color: 'rgba(21,9,47,0.12)' }],
+  soft: [{ x: 0, y: 2, blur: 6, spread: 0, color: 'rgba(20,18,16,0.06)' }, { x: 0, y: 18, blur: 40, spread: -6, color: 'rgba(20,18,16,0.14)' }],
+  float: [{ x: 0, y: 4, blur: 10, spread: 0, color: 'rgba(20,18,16,0.08)' }, { x: 0, y: 40, blur: 80, spread: -12, color: 'rgba(20,18,16,0.28)' }],
+  deep: [{ x: 0, y: 8, blur: 20, spread: 0, color: 'rgba(12,11,10,0.25)' }, { x: 0, y: 60, blur: 120, spread: -10, color: 'rgba(12,11,10,0.55)' }],
+  card: [{ x: 0, y: 1, blur: 3, spread: 0, color: 'rgba(20,18,16,0.06)' }, { x: 0, y: 12, blur: 32, spread: -4, color: 'rgba(20,18,16,0.12)' }],
 };
 
 // ---------- devices (vector) ----------
@@ -142,7 +142,7 @@ function macbook(o) {
 // Browser window: the desktop/tablet screens already contain the Safari chrome, so this is the raw screen with window rounding.
 function browser(o) {
   const m = S[o.slug]; const s = o.w / (o.crop ? o.crop.w : m.w);
-  return screen({ name: o.name || 'Browser / ' + m.name, slug: o.slug, x: o.x, y: o.y, scale: s, crop: o.crop, radius: o.radius !== undefined ? o.radius : 12 * Math.max(s, 0.5), shadow: o.shadow === false ? undefined : (o.shadow || SH.float), stroke: o.stroke || { color: 'rgba(21,9,47,0.08)', width: 1 }, rotation: o.rotation, opacity: o.opacity });
+  return screen({ name: o.name || 'Browser / ' + m.name, slug: o.slug, x: o.x, y: o.y, scale: s, crop: o.crop, radius: o.radius !== undefined ? o.radius : 12 * Math.max(s, 0.5), shadow: o.shadow === false ? undefined : (o.shadow || SH.float), stroke: o.stroke || { color: 'rgba(20,18,16,0.08)', width: 1 }, rotation: o.rotation, opacity: o.opacity });
 }
 // floating "detail card": a crop of a screen shown at zoom with a white rounded frame
 function detail(o) {
@@ -150,7 +150,7 @@ function detail(o) {
   if (o.radius && o.radiusScales !== false && o.radius < 12) o = { ...o, radius: o.radius * scr.scale };
   const pad = o.pad === undefined ? 0 : o.pad;
   return group({ name: o.name || 'Detail', x: o.x, y: o.y, w: scr.w + pad * 2, h: scr.h + pad * 2, rotation: o.rotation, opacity: o.opacity }, [
-    rect({ name: 'Card', x: 0, y: 0, w: scr.w + pad * 2, h: scr.h + pad * 2, radius: o.radius || 16, fill: o.fill || C.white, shadow: o.shadow || SH.float, stroke: { color: 'rgba(21,9,47,0.06)', width: 1 } }),
+    rect({ name: 'Card', x: 0, y: 0, w: scr.w + pad * 2, h: scr.h + pad * 2, radius: o.radius || 16, fill: o.fill || C.white, shadow: o.shadow || SH.float, stroke: { color: 'rgba(20,18,16,0.06)', width: 1 } }),
     Object.assign(scr, { x: pad, y: pad, radius: Math.max(0, (o.radius || 16) - pad) }),
   ]);
 }
@@ -191,6 +191,7 @@ function wave(W, y, h, color, kind = 'wave') {
   else if (kind === 'curve') d = `M0 ${h}C${W * 0.25} ${0} ${W * 0.75} ${0} ${W} ${h}Z`;
   else if (kind === 'diagonal') d = `M0 ${h}L${W} 0L${W} ${h}Z`;
   else if (kind === 'diagonal-r') d = `M0 0L${W} ${h}L0 ${h}Z`;
+  else if (kind === 'diagonal-r-top') d = `M0 0L${W} 0L${W} ${h}Z`; // the previous section's colour, entering from the top
   else if (kind === 'arch') d = `M0 ${h}L0 ${h * 0.6}Q0 0 ${h * 0.6} 0L${W - h * 0.6} 0Q${W} 0 ${W} ${h * 0.6}L${W} ${h}Z`;
   return pathN({ name: 'Transition', x: 0, y, w: W, h, d, fill: color });
 }

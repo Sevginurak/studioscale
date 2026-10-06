@@ -85,6 +85,7 @@ function node(n, ctx) {
     }
     case 'group': {
       let st = base(n);
+      if (n.zoom && n.zoom !== 1) st += `transform-origin:0 0;transform:scale(${n.zoom});`;
       if (n.clip) st += `overflow:hidden;border-radius:${radiusCSS(n.radius || 0)};`;
       if (n.fill) st += `background:${fillCSS(n.fill)};`;
       return `<div${id} style="${st}">${shadowSVG(n, n.radius)}${n.children.map(c => node(c, ctx)).join('')}</div>`;

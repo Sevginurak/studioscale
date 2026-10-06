@@ -36,7 +36,7 @@ function tracks(kfs) {
   for (const [name, n0] of maps[0]) {
     const vals = maps.map(m => m.get(name));
     if (vals.some(v => !v)) throw new Error('layer missing in a keyframe: ' + name);
-    const get = (n) => ({ x: n.x || 0, y: n.y || 0, w: n.w || 0, h: n.h || 0, rotation: n.rotation || 0, opacity: n.opacity === undefined ? 1 : n.opacity, cx: n.crop ? n.crop.x * n.scale : 0, cy: n.crop ? n.crop.y * n.scale : 0 });
+    const get = (n) => ({ x: n.x || 0, y: n.y || 0, w: n.w || 0, h: n.h || 0, rotation: n.rotation || 0, opacity: n.opacity === undefined ? 1 : n.opacity, cx: n.crop ? n.crop.x * n.scale : 0, cy: n.crop ? n.crop.y * n.scale : 0, zoom: n.zoom === undefined ? 1 : n.zoom });
     const v = vals.map(get);
     const changed = Object.keys(v[0]).filter(p => v.some(x => Math.abs(x[p] - v[0][p]) > 1e-6));
     if (changed.length) res.push({ name, type: n0.type, values: v, changed });
@@ -50,7 +50,7 @@ async function main() {
   const scene = { generated: new Date().toISOString(), screens: lib.MAN, frames: [] };
   for (const F of FRAMES) {
     const kfs = (F.keyframes || [0]).map((_, i) => { lib.resetNames(); return lib.annotate(F.build(i)); });
-    scene.frames.push({ id: F.id, page: F.page, title: F.title, animated: !!F.keyframes, motion: F.keyframes || null, keyframes: kfs });
+    scene.frames.push({ id: F.id, page: F.page, title: F.title, animated: !!F.keyframes, motion: F.keyframes || null, keyframes: kfs.map(bakeZoom) });
     if (only && !only.includes(F.id)) continue;
     const dir = path.join(OUT, F.page); fs.mkdirSync(dir, { recursive: true });
     const tree = kfs[0];
@@ -65,7 +65,7 @@ async function main() {
     console.error('png', F.page, F.file);
     if (motion) {
       // keyframe stills
-      const kdir = path.join(OUT, 'motion', F.file); fs.mkdirSync(kdir, { recursive: true });
+      const kdir = path.join(OUT, 'motion', F.file); fs.rmSync(kdir, { recursive: true, force: true }); fs.mkdirSync(kdir, { recursive: true });
       await p.addScriptTag({ content: PLAYER });
       const total = await p.evaluate(() => window.__total());
       for (let i = 0; i < F.keyframes.length; i++) {
@@ -100,6 +100,25 @@ async function main() {
   fs.writeFileSync(path.join(ROOT, 'figma-plugin', 'scene.json'), JSON.stringify(scene));
 }
 
+// Figma has no group scale: bake a camera group's zoom into its children's geometry (Smart Animate then tweens sizes and positions)
+function bakeZoom(tree) {
+  const t = JSON.parse(JSON.stringify(tree));
+  const scaleNode = (n, z) => {
+    for (const k of ['x', 'y', 'w', 'h']) if (typeof n[k] === 'number') n[k] *= z;
+    if (n.type === 'text') { n.size *= z; n.lh *= z; }
+    if (n.type === 'screen') n.scale *= z;
+    if (typeof n.radius === 'number') n.radius *= z; else if (Array.isArray(n.radius)) n.radius = n.radius.map(r => r * z);
+    if (n.stroke && n.stroke.width) n.stroke = { ...n.stroke, width: n.stroke.width * z };
+    if (Array.isArray(n.shadow)) n.shadow = n.shadow.map(sh => ({ ...sh, x: sh.x * z, y: sh.y * z, blur: sh.blur * z, spread: (sh.spread || 0) * z }));
+    for (const c of n.children || []) scaleNode(c, z);
+  };
+  const walk = (n) => {
+    if (n.type === 'group' && n.zoom && n.zoom !== 1) { const z = n.zoom; for (const c of n.children) scaleNode(c, z); n.w *= z; n.h *= z; delete n.zoom; }
+    for (const c of n.children || []) walk(c);
+  };
+  walk(t); return t;
+}
+
 // In-page player: interpolates tracked nodes between keyframes (hold, then ease-in-out transition), looping back to the first.
 const PLAYER = `
 (function(){
@@ -119,6 +138,7 @@ const PLAYER = `
       if (ch.includes('h')) e.style.height = v.h + 'px';
       if (ch.includes('rotation')) e.style.transform = 'rotate(' + v.rotation + 'deg)';
       if (ch.includes('opacity')) e.style.opacity = v.opacity;
+      if (ch.includes('zoom')) { e.style.transformOrigin = '0 0'; e.style.transform = 'scale(' + v.zoom + ')'; }
       if (ch.includes('cx') || ch.includes('cy')) { const img = e.querySelector('img'); img.style.left = (-v.cx) + 'px'; img.style.top = (-v.cy) + 'px'; }
     }
   }

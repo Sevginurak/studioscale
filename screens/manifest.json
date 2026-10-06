@@ -247,5 +247,22 @@
    "Dropdown Menu",
    "Cursors / Pointer Cursor"
   ]
+ },
+ {
+  "id": "1:25280",
+  "name": "Chat - Chat_name - Dropdown",
+  "slug": "chat-convo",
+  "w": 1440,
+  "h": 960,
+  "x": 2810,
+  "y": 8195,
+  "variantOf": "chat-chat-name-dropdown",
+  "hidden": [
+   "Dropdown Menu",
+   "Cursors / Pointer Cursor",
+   "Chat > Wrapper",
+   "Header > .Sidebar Popover Trigger",
+   "Header > Icon Placeholder"
+  ]
  }
 ]
