@@ -99,7 +99,11 @@ async function main() {
         execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-framerate', String(fps), '-i', path.join(fdir, '%04d.jpg'), '-vf', 'scale=trunc(iw/2)*2:trunc(ih/2)*2', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '18', '-preset', 'slow', '-movflags', '+faststart', mp4]);
         const gw = F.page === 'dribbble' ? 800 : 918;
         const gif = path.join(dir, F.file + '.gif');
-        execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', mp4, '-vf', `fps=20,scale=${gw}:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=192:stats_mode=diff[p];[b][p]paletteuse=dither=sierra2_4a`, gif]);
+        // keep GIFs under 10 MB: step down frame rate and palette until it fits
+        for (const [gfps, cols] of [[20, 192], [15, 160], [12, 96], [10, 64]]) {
+          execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', mp4, '-vf', `fps=${gfps},scale=${gw}:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=${cols}:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle`, gif]);
+          if (fs.statSync(gif).size < 9.5e6) break;
+        }
         fs.rmSync(fdir, { recursive: true, force: true });
         console.error('video', F.file, (total / 1000).toFixed(1) + 's');
       }
